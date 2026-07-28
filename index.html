@@ -434,6 +434,15 @@
       font-size: 14px;
     }
 
+    .acciones-comunidad {
+      margin: 10px 0 14px;
+    }
+
+    .acciones-comunidad .btn-mini {
+      flex: 1 1 150px;
+      text-align: center;
+    }
+
     .separador {
       border: 0;
       border-top: 1px solid var(--borde);
@@ -612,6 +621,45 @@
       margin-top: 5px;
       color: var(--gris);
       font-size: 12px;
+    }
+
+    .comunidad-inactiva {
+      opacity: .82;
+    }
+
+    .comunidad-inactiva > summary {
+      background: #f9fafb;
+    }
+
+    .historico-comunidades {
+      margin-top: 18px;
+      border-top: 1px solid var(--borde);
+      padding-top: 8px;
+    }
+
+    .historico-comunidades > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      color: var(--gris);
+    }
+
+    .historico-comunidades > summary::-webkit-details-marker { display: none; }
+    .historico-comunidades[open] > summary .flecha { transform: rotate(90deg); }
+
+    .btn-desactivar {
+      background: #fef3c7;
+      color: #a16207;
+    }
+
+    .btn-reactivar {
+      background: #dcfce7;
+      color: #166534;
     }
 
 </style>
@@ -1014,6 +1062,39 @@
   </div>
 </div>
 
+<!-- MODAL EDICIÓN DE COMUNIDAD -->
+<div id="modalComunidad" class="modal-fondo oculto">
+  <div class="modal">
+    <h2>✏️ Editar comunidad</h2>
+    <input id="editComId" type="hidden">
+
+    <label>Nombre</label>
+    <input id="editComNombre" type="text" placeholder="Nombre de la comunidad">
+
+    <div class="fila-form">
+      <div>
+        <label>CIF</label>
+        <input id="editComCif" type="text" placeholder="CIF">
+      </div>
+      <div>
+        <label>IBAN</label>
+        <input id="editComIban" type="text" placeholder="IBAN">
+      </div>
+    </div>
+
+    <label>Dirección</label>
+    <input id="editComDireccion" type="text" placeholder="Dirección de la comunidad">
+
+    <label>Notas</label>
+    <textarea id="editComNotas" placeholder="Datos de interés y observaciones"></textarea>
+
+    <div class="botones-modal">
+      <button id="guardarEdicionComunidad" class="btn-principal" style="margin:0;">Guardar cambios</button>
+      <button id="cancelarEdicionComunidad" class="btn-secundario">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EDICIÓN DE MOVIMIENTO -->
 <div id="modalMovimiento" class="modal-fondo oculto">
   <div class="modal">
@@ -1250,6 +1331,13 @@
     return comunidades.find(c => c.id === id);
   }
 
+  function esComunidadActiva(comunidadOId) {
+    const comunidad = typeof comunidadOId === "string"
+      ? comunidadPorId(comunidadOId)
+      : comunidadOId;
+    return comunidad ? comunidad.activa !== false : false;
+  }
+
   function telefonoHref(valor) {
     return String(valor || "").replace(/[^0-9+]/g, "");
   }
@@ -1323,37 +1411,43 @@
   }
 
   function rellenarSelectComunidades() {
-    const ids = [
+    const idsNuevos = [
       "movComunidad",
       "venComunidad",
       "recComunidad",
       "facComunidad",
-      "conComunidad",
-      "editMovComunidad"
+      "conComunidad"
     ];
+    const idsHistoricos = ["editMovComunidad"];
 
-    ids.forEach(id => {
+    [...idsNuevos, ...idsHistoricos].forEach(id => {
       const select = document.getElementById(id);
       if (!select) return;
+
       const actual = select.value;
+      const permitirInactivas = idsHistoricos.includes(id);
+      const candidatas = comunidades
+        .filter(c => permitirInactivas || esComunidadActiva(c))
+        .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), "es"));
+
       select.innerHTML = "";
 
-      if (comunidades.length === 0) {
+      if (candidatas.length === 0) {
         const op = document.createElement("option");
         op.value = "";
-        op.textContent = "Primero crea una comunidad";
+        op.textContent = comunidades.length === 0
+          ? "Primero crea una comunidad"
+          : "No hay comunidades activas";
         select.appendChild(op);
         return;
       }
 
-      [...comunidades]
-        .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), "es"))
-        .forEach(comunidad => {
-          const op = document.createElement("option");
-          op.value = comunidad.id;
-          op.textContent = comunidad.nombre;
-          select.appendChild(op);
-        });
+      candidatas.forEach(comunidad => {
+        const op = document.createElement("option");
+        op.value = comunidad.id;
+        op.textContent = comunidad.nombre + (esComunidadActiva(comunidad) ? "" : " · Inactiva");
+        select.appendChild(op);
+      });
 
       if ([...select.options].some(o => o.value === actual)) {
         select.value = actual;
@@ -1535,6 +1629,100 @@
       alert("No se pudo guardar la comunidad.");
     }
   });
+
+  window.editarComunidad = comunidadId => {
+    const comunidad = comunidadPorId(comunidadId);
+    if (!comunidad) return;
+
+    document.getElementById("editComId").value = comunidadId;
+    document.getElementById("editComNombre").value = comunidad.nombre || "";
+    document.getElementById("editComCif").value = comunidad.cif || "";
+    document.getElementById("editComIban").value = comunidad.iban || "";
+    document.getElementById("editComDireccion").value = comunidad.direccion || "";
+    document.getElementById("editComNotas").value = comunidad.notas || "";
+    document.getElementById("modalComunidad").classList.remove("oculto");
+  };
+
+  document.getElementById("cancelarEdicionComunidad").addEventListener("click", () => {
+    document.getElementById("modalComunidad").classList.add("oculto");
+  });
+
+  document.getElementById("guardarEdicionComunidad").addEventListener("click", async () => {
+    const comunidadId = document.getElementById("editComId").value;
+    const nombre = document.getElementById("editComNombre").value.trim();
+    if (!comunidadId) return;
+    if (!nombre) return alert("Escribe el nombre de la comunidad.");
+
+    try {
+      await updateDoc(doc(db, "comunidades", comunidadId), {
+        nombre,
+        cif: document.getElementById("editComCif").value.trim(),
+        iban: document.getElementById("editComIban").value.trim(),
+        direccion: document.getElementById("editComDireccion").value.trim(),
+        notas: document.getElementById("editComNotas").value.trim(),
+        modificadoPor: auth.currentUser?.email || "",
+        modificadoEn: serverTimestamp()
+      });
+
+      // Mantener el nombre de la comunidad coherente también en los datos relacionados.
+      const actualizaciones = [];
+      movimientos.filter(x => x.comunidadId === comunidadId).forEach(x =>
+        actualizaciones.push(updateDoc(doc(db, "movimientos", x.id), { comunidadNombre: nombre }))
+      );
+      vencimientos.filter(x => x.comunidadId === comunidadId).forEach(x =>
+        actualizaciones.push(updateDoc(doc(db, "vencimientos", x.id), { comunidadNombre: nombre }))
+      );
+      recurrentes.filter(x => x.comunidadId === comunidadId).forEach(x =>
+        actualizaciones.push(updateDoc(doc(db, "recurrentes", x.id), { comunidadNombre: nombre }))
+      );
+      facturas.filter(x => x.comunidadId === comunidadId).forEach(x =>
+        actualizaciones.push(updateDoc(doc(db, "facturas", x.id), { comunidadNombre: nombre }))
+      );
+      contratos.filter(x => x.comunidadId === comunidadId).forEach(x =>
+        actualizaciones.push(updateDoc(doc(db, "contratos", x.id), { comunidadNombre: nombre }))
+      );
+      await Promise.all(actualizaciones);
+
+      document.getElementById("modalComunidad").classList.add("oculto");
+    } catch (error) {
+      console.error(error);
+      alert("No se pudieron guardar los cambios de la comunidad.");
+    }
+  });
+
+  window.cambiarEstadoComunidad = async (comunidadId, nuevaActiva) => {
+    const comunidad = comunidadPorId(comunidadId);
+    if (!comunidad) return;
+
+    const activar = nuevaActiva === true;
+    const accion = activar ? "reactivar" : "desactivar";
+    const mensaje = activar
+      ? `¿Reactivar “${comunidad.nombre || "esta comunidad"}”?\n\nVolverá a estar disponible para nuevos movimientos, facturas, contratos y recurrentes.`
+      : `¿Desactivar “${comunidad.nombre || "esta comunidad"}”?\n\nNo se borrará ningún dato. Se conservarán movimientos, facturas, contratos, vencimientos, presidente y vecinos en el histórico. Además, dejará de estar disponible para registrar nueva actividad mientras permanezca inactiva.`;
+
+    if (!confirm(mensaje)) return;
+
+    try {
+      const cambios = {
+        activa: activar,
+        modificadoPor: auth.currentUser?.email || "",
+        modificadoEn: serverTimestamp()
+      };
+
+      if (activar) {
+        cambios.reactivadaPor = auth.currentUser?.email || "";
+        cambios.reactivadaEn = serverTimestamp();
+      } else {
+        cambios.desactivadaPor = auth.currentUser?.email || "";
+        cambios.desactivadaEn = serverTimestamp();
+      }
+
+      await updateDoc(doc(db, "comunidades", comunidadId), cambios);
+    } catch (error) {
+      console.error(error);
+      alert(`No se pudo ${accion} la comunidad.`);
+    }
+  };
 
   window.guardarPresidente = async comunidadId => {
     const comunidad = comunidadPorId(comunidadId);
@@ -1974,6 +2162,7 @@
   async function sincronizarRecurrentes() {
     for (const r of recurrentes) {
       if (r.activo === false || !r.proximaFecha) continue;
+      if (!esComunidadActiva(r.comunidadId)) continue;
 
       const idVencimiento = `rec_${r.id}_${r.proximaFecha}`;
       const referencia = doc(db, "vencimientos", idVencimiento);
@@ -2281,7 +2470,7 @@
     contenedor.innerHTML = "";
 
     const activos = vencimientos
-      .filter(v => v.estado !== "Completado")
+      .filter(v => v.estado !== "Completado" && esComunidadActiva(v.comunidadId))
       .sort((a, b) => String(a.fechaVencimiento || "").localeCompare(String(b.fechaVencimiento || "")));
 
     const vencidos = activos.filter(v => diasHasta(v.fechaVencimiento) < 0);
@@ -2294,7 +2483,7 @@
       return d > 7 && d <= 30;
     });
     const factPend = facturas
-      .filter(f => f.estado !== "Pagada")
+      .filter(f => f.estado !== "Pagada" && esComunidadActiva(f.comunidadId))
       .sort((a, b) => String(a.fechaVencimiento || "").localeCompare(String(b.fechaVencimiento || "")));
 
     mostrarAlertaInicio(contenedor, "🔴 Vencidos", vencidos, bloqueVencimiento);
@@ -2379,9 +2568,16 @@
 
     const datosMes = movimientosDelMes();
 
-    [...comunidades]
-      .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), "es"))
-      .forEach(com => {
+    const activas = [...comunidades]
+      .filter(esComunidadActiva)
+      .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), "es"));
+    const inactivas = [...comunidades]
+      .filter(c => !esComunidadActiva(c))
+      .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), "es"));
+    const historicoInterior = document.createElement("div");
+
+    [...activas, ...inactivas].forEach(com => {
+        const activa = esComunidadActiva(com);
         const movCom = datosMes.filter(m => m.comunidadId === com.id);
         const ingresos = movCom
           .filter(m => m.tipo === "Ingreso" && m.estado === "Cobrado")
@@ -2402,10 +2598,10 @@
           + facturasPendientesCom.reduce((s, f) => s + Number(f.total || 0), 0);
 
         const detalles = document.createElement("details");
-        detalles.className = "comunidad";
+        detalles.className = activa ? "comunidad" : "comunidad comunidad-inactiva";
         detalles.innerHTML = `
           <summary>
-            <span><span class="flecha">▶</span> 🏢 ${esc(com.nombre)}</span>
+            <span><span class="flecha">▶</span> 🏢 ${esc(com.nombre)} <span class="badge ${activa ? "badge-verde" : ""}">${activa ? "Activa" : "Inactiva"}</span></span>
             <span class="${saldo >= 0 ? "positivo" : "negativo"}">${saldo >= 0 ? euroMas(saldo) : "-" + euro(Math.abs(saldo))}</span>
           </summary>
         `;
@@ -2422,6 +2618,13 @@
             ${com.cif ? `CIF: ${esc(com.cif)}<br>` : ""}
             ${com.iban ? `IBAN: ${esc(com.iban)}<br>` : ""}
             ${com.notas ? `${esc(com.notas)}` : ""}
+          </div>
+          <div class="acciones acciones-comunidad">
+            <button type="button" class="btn-mini btn-editar" onclick="editarComunidad('${com.id}')">✏️ Editar comunidad</button>
+            ${activa
+              ? `<button type="button" class="btn-mini btn-desactivar" onclick="cambiarEstadoComunidad('${com.id}', false)">⏸️ Desactivar comunidad</button>`
+              : `<button type="button" class="btn-mini btn-reactivar" onclick="cambiarEstadoComunidad('${com.id}', true)">▶️ Reactivar comunidad</button>`
+            }
           </div>
 
           <div class="mini-resumen">
@@ -2516,8 +2719,22 @@
         });
 
         detalles.appendChild(interior);
-        contenedor.appendChild(detalles);
+        if (activa) contenedor.appendChild(detalles);
+        else historicoInterior.appendChild(detalles);
       });
+
+    if (inactivas.length > 0) {
+      const historico = document.createElement("details");
+      historico.className = "historico-comunidades";
+      historico.innerHTML = `
+        <summary>
+          <span><span class="flecha">▶</span> 📁 Comunidades inactivas / Histórico</span>
+          <span>${inactivas.length}</span>
+        </summary>
+      `;
+      historico.appendChild(historicoInterior);
+      contenedor.appendChild(historico);
+    }
   }
 
   function mostrarMovimientos() {
@@ -2623,7 +2840,7 @@
     contenedor.innerHTML = "";
 
     const activos = vencimientos
-      .filter(v => v.estado !== "Completado")
+      .filter(v => v.estado !== "Completado" && esComunidadActiva(v.comunidadId))
       .sort((a, b) => String(a.fechaVencimiento || "").localeCompare(String(b.fechaVencimiento || "")));
 
     const vencidos = activos.filter(v => diasHasta(v.fechaVencimiento) < 0);
