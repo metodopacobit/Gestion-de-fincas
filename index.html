@@ -501,6 +501,119 @@
       margin-bottom: 0;
     }
 
+
+    /* Ficha de comunidad y contactos */
+    .bloque-contactos {
+      margin-top: 16px;
+      padding-top: 4px;
+    }
+
+    .contacto-titulo {
+      margin: 14px 0 8px;
+      font-size: 16px;
+    }
+
+    .contacto-card {
+      background: #f9fafb;
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 8px 0;
+    }
+
+    .contacto-card strong { display: block; margin-bottom: 5px; }
+
+    .contacto-linea {
+      color: var(--gris);
+      font-size: 13px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .contacto-linea a {
+      color: var(--azul);
+      text-decoration: none;
+    }
+
+    .form-contacto {
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .resumen-btn {
+      width: 100%;
+      min-height: 76px;
+      border: 0;
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 10px 6px;
+      text-align: center;
+      color: var(--texto);
+    }
+
+    .resumen-btn:active { transform: scale(.98); }
+
+    .resumen-btn small {
+      display: block;
+      color: var(--gris);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .resumen-btn strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 14px;
+    }
+
+    .detalle-resumen {
+      margin: 6px 0 16px;
+      padding: 12px;
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .detalle-resumen h4 { margin: 0 0 8px; }
+
+    .filtros-movimientos {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin: 10px 0 4px;
+    }
+
+    .filtro-mov {
+      width: auto;
+      border: 1px solid var(--borde);
+      border-radius: 999px;
+      background: #fff;
+      color: #4b5563;
+      padding: 8px 11px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .filtro-mov.activo {
+      background: var(--verde);
+      color: #fff;
+      border-color: var(--verde);
+    }
+
+    .btn-pago {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .estado-explicacion {
+      margin-top: 5px;
+      color: var(--gris);
+      font-size: 12px;
+    }
+
 </style>
 </head>
 
@@ -635,6 +748,7 @@
           <div>
             <label>Estado</label>
             <select id="movEstado"></select>
+            <div id="movEstadoAyuda" class="estado-explicacion">Solo lo cobrado o pagado computa en los totales.</div>
           </div>
         </div>
 
@@ -643,6 +757,12 @@
         <hr class="separador">
 
         <h3 class="subtitulo">Movimientos del mes</h3>
+        <div class="filtros-movimientos" aria-label="Filtrar movimientos por estado">
+          <button type="button" class="filtro-mov activo" data-filtro="Todos" onclick="cambiarFiltroMovimientos('Todos')">Todos</button>
+          <button type="button" class="filtro-mov" data-filtro="Cobrados" onclick="cambiarFiltroMovimientos('Cobrados')">Cobrados</button>
+          <button type="button" class="filtro-mov" data-filtro="Pagados" onclick="cambiarFiltroMovimientos('Pagados')">Pagados</button>
+          <button type="button" class="filtro-mov" data-filtro="Pendientes" onclick="cambiarFiltroMovimientos('Pendientes')">Pendientes</button>
+        </div>
         <div id="listaMovimientos"></div>
       </div>
     </details>
@@ -1023,6 +1143,7 @@
   let facturas = [];
   let contratos = [];
   let desuscripciones = [];
+  let filtroMovimientos = "Todos";
 
   const euroFormatter = new Intl.NumberFormat("es-ES", {
     style: "currency",
@@ -1125,6 +1246,70 @@
     return comunidades.find(c => c.id === id)?.nombre || "Comunidad sin nombre";
   }
 
+  function comunidadPorId(id) {
+    return comunidades.find(c => c.id === id);
+  }
+
+  function telefonoHref(valor) {
+    return String(valor || "").replace(/[^0-9+]/g, "");
+  }
+
+  function nuevoIdLocal() {
+    if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+    return `vec_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  }
+
+  function personaContactoHTML(persona = {}, vacio = "Sin datos registrados") {
+    const nombre = String(persona.nombre || "").trim();
+    const telefono = String(persona.telefono || "").trim();
+    const email = String(persona.email || "").trim();
+    const direccion = String(persona.direccion || "").trim();
+
+    if (!nombre && !telefono && !email && !direccion) {
+      return `<div class="texto-ayuda">${vacio}</div>`;
+    }
+
+    return `
+      ${nombre ? `<strong>${esc(nombre)}</strong>` : ""}
+      <div class="contacto-linea">
+        ${telefono ? `📞 <a href="tel:${esc(telefonoHref(telefono))}">${esc(telefono)}</a><br>` : ""}
+        ${email ? `✉️ <a href="mailto:${esc(email)}">${esc(email)}</a><br>` : ""}
+        ${direccion ? `📍 ${esc(direccion)}` : ""}
+      </div>
+    `;
+  }
+
+  function estadoVisibleMovimiento(m) {
+    if (m.estado === "Pendiente") {
+      return m.tipo === "Ingreso" ? "Pendiente de cobro" : "Pendiente de pago";
+    }
+    return m.estado || (m.tipo === "Ingreso" ? "Cobrado" : "Pagado");
+  }
+
+  function movimientoDetalleHTML(m, opciones = {}) {
+    const ingreso = m.tipo === "Ingreso";
+    const pendiente = m.estado === "Pendiente";
+    const mostrarComunidad = opciones.mostrarComunidad !== false;
+    return `
+      <div class="item">
+        <div class="item-top">
+          <span>${esc(m.concepto || m.categoria || "Movimiento")}</span>
+          <span class="${pendiente ? "pendiente" : (ingreso ? "positivo" : "negativo")}">${pendiente ? euro(m.importe) : (ingreso ? euroMas(m.importe) : euroMenos(m.importe))}</span>
+        </div>
+        <div class="item-info">
+          ${fechaBonita(m.fecha)}${mostrarComunidad ? ` · ${esc(nombreComunidad(m.comunidadId))}` : ""} · ${esc(m.categoria || "")}<br>
+          ${m.tercero ? `${esc(m.tercero)} · ` : ""}<span class="badge ${pendiente ? "badge-amarillo" : "badge-verde"}">${esc(estadoVisibleMovimiento(m))}</span>
+        </div>
+        ${opciones.sinAcciones ? "" : `
+          <div class="acciones">
+            <button class="btn-mini btn-editar" onclick="editarMovimiento('${m.id}')">✏️ Editar</button>
+            <button class="btn-mini btn-borrar" onclick="borrarMovimiento('${m.id}')">Eliminar</button>
+          </div>
+        `}
+      </div>
+    `;
+  }
+
   function movimientosDelMes() {
     const mes = document.getElementById("mesGlobal").value;
     return movimientos.filter(m => String(m.fecha || "").startsWith(mes));
@@ -1192,14 +1377,20 @@
   function rellenarEstados(selectId, tipo, seleccion = "") {
     const select = document.getElementById(selectId);
     const lista = tipo === "Ingreso"
-      ? ["Cobrado", "Pendiente"]
-      : ["Pagado", "Pendiente"];
+      ? [
+          { valor: "Cobrado", texto: "Cobrado" },
+          { valor: "Pendiente", texto: "Pendiente de cobro" }
+        ]
+      : [
+          { valor: "Pagado", texto: "Pagado" },
+          { valor: "Pendiente", texto: "Pendiente de pago" }
+        ];
     select.innerHTML = "";
     lista.forEach(estado => {
       const op = document.createElement("option");
-      op.value = estado;
-      op.textContent = estado;
-      if (estado === seleccion) op.selected = true;
+      op.value = estado.valor;
+      op.textContent = estado.texto;
+      if (estado.valor === seleccion) op.selected = true;
       select.appendChild(op);
     });
   }
@@ -1345,6 +1536,117 @@
     }
   });
 
+  window.guardarPresidente = async comunidadId => {
+    const comunidad = comunidadPorId(comunidadId);
+    if (!comunidad) return;
+
+    const presidente = {
+      nombre: document.getElementById(`presNombre_${comunidadId}`)?.value.trim() || "",
+      telefono: document.getElementById(`presTelefono_${comunidadId}`)?.value.trim() || "",
+      email: document.getElementById(`presEmail_${comunidadId}`)?.value.trim() || "",
+      direccion: document.getElementById(`presDireccion_${comunidadId}`)?.value.trim() || ""
+    };
+
+    try {
+      await updateDoc(doc(db, "comunidades", comunidadId), {
+        presidente,
+        modificadoPor: auth.currentUser?.email || "",
+        modificadoEn: serverTimestamp()
+      });
+    } catch (error) {
+      console.error(error);
+      alert("No se pudieron guardar los datos del presidente.");
+    }
+  };
+
+  window.guardarVecino = async comunidadId => {
+    const comunidad = comunidadPorId(comunidadId);
+    if (!comunidad) return;
+
+    const nombreEl = document.getElementById(`vecNombre_${comunidadId}`);
+    const telefonoEl = document.getElementById(`vecTelefono_${comunidadId}`);
+    const emailEl = document.getElementById(`vecEmail_${comunidadId}`);
+    const direccionEl = document.getElementById(`vecDireccion_${comunidadId}`);
+    const editEl = document.getElementById(`vecEditIndex_${comunidadId}`);
+
+    const vecino = {
+      id: nuevoIdLocal(),
+      nombre: nombreEl?.value.trim() || "",
+      telefono: telefonoEl?.value.trim() || "",
+      email: emailEl?.value.trim() || "",
+      direccion: direccionEl?.value.trim() || ""
+    };
+
+    if (!vecino.nombre) return alert("Escribe el nombre del vecino o propietario.");
+
+    const vecinos = Array.isArray(comunidad.vecinos) ? comunidad.vecinos.map(v => ({ ...v })) : [];
+    const indice = Number(editEl?.value ?? -1);
+
+    if (Number.isInteger(indice) && indice >= 0 && indice < vecinos.length) {
+      vecino.id = vecinos[indice]?.id || vecino.id;
+      vecinos[indice] = vecino;
+    } else {
+      vecinos.push(vecino);
+    }
+
+    try {
+      await updateDoc(doc(db, "comunidades", comunidadId), {
+        vecinos,
+        modificadoPor: auth.currentUser?.email || "",
+        modificadoEn: serverTimestamp()
+      });
+      cancelarEdicionVecino(comunidadId);
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo guardar el vecino.");
+    }
+  };
+
+  window.editarVecino = (comunidadId, indice) => {
+    const comunidad = comunidadPorId(comunidadId);
+    const vecinos = Array.isArray(comunidad?.vecinos) ? comunidad.vecinos : [];
+    const vecino = vecinos[indice];
+    if (!vecino) return;
+
+    document.getElementById(`vecEditIndex_${comunidadId}`).value = String(indice);
+    document.getElementById(`vecNombre_${comunidadId}`).value = vecino.nombre || "";
+    document.getElementById(`vecTelefono_${comunidadId}`).value = vecino.telefono || "";
+    document.getElementById(`vecEmail_${comunidadId}`).value = vecino.email || "";
+    document.getElementById(`vecDireccion_${comunidadId}`).value = vecino.direccion || "";
+    document.getElementById(`vecFormTitulo_${comunidadId}`).textContent = "✏️ Editar vecino / propietario";
+    document.getElementById(`vecForm_${comunidadId}`).open = true;
+  };
+
+  window.cancelarEdicionVecino = comunidadId => {
+    const ids = ["vecNombre", "vecTelefono", "vecEmail", "vecDireccion"];
+    ids.forEach(prefijo => {
+      const el = document.getElementById(`${prefijo}_${comunidadId}`);
+      if (el) el.value = "";
+    });
+    const editEl = document.getElementById(`vecEditIndex_${comunidadId}`);
+    if (editEl) editEl.value = "-1";
+    const titulo = document.getElementById(`vecFormTitulo_${comunidadId}`);
+    if (titulo) titulo.textContent = "➕ Añadir vecino / propietario";
+  };
+
+  window.borrarVecino = async (comunidadId, indice) => {
+    const comunidad = comunidadPorId(comunidadId);
+    const vecinos = Array.isArray(comunidad?.vecinos) ? comunidad.vecinos.map(v => ({ ...v })) : [];
+    if (!vecinos[indice]) return;
+    if (!confirm(`¿Eliminar a ${vecinos[indice].nombre || "este vecino"}?`)) return;
+    vecinos.splice(indice, 1);
+    try {
+      await updateDoc(doc(db, "comunidades", comunidadId), {
+        vecinos,
+        modificadoPor: auth.currentUser?.email || "",
+        modificadoEn: serverTimestamp()
+      });
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo eliminar el vecino.");
+    }
+  };
+
   /* MOVIMIENTOS */
 
   document.getElementById("movTipo").addEventListener("change", () => {
@@ -1352,6 +1654,15 @@
     rellenarCategorias("movCategoria", tipo);
     rellenarEstados("movEstado", tipo);
   });
+
+
+  window.cambiarFiltroMovimientos = filtro => {
+    filtroMovimientos = filtro;
+    document.querySelectorAll(".filtro-mov").forEach(btn => {
+      btn.classList.toggle("activo", btn.dataset.filtro === filtro);
+    });
+    mostrarMovimientos();
+  };
 
   document.getElementById("guardarMovimiento").addEventListener("click", async () => {
     const comunidadId = document.getElementById("movComunidad").value;
@@ -1493,30 +1804,120 @@
     }
   });
 
+  async function completarVencimientoYAvanzar(venc) {
+    await updateDoc(doc(db, "vencimientos", venc.id), {
+      estado: "Completado",
+      completadoPor: auth.currentUser?.email || "",
+      completadoEn: serverTimestamp()
+    });
+
+    if (venc.recurrenteId) {
+      const recurrente = recurrentes.find(r => r.id === venc.recurrenteId);
+      if (
+        recurrente &&
+        recurrente.activo !== false &&
+        recurrente.proximaFecha === venc.fechaVencimiento
+      ) {
+        await updateDoc(doc(db, "recurrentes", recurrente.id), {
+          proximaFecha: siguienteFecha(recurrente.proximaFecha, recurrente.frecuencia),
+          modificadoEn: serverTimestamp()
+        });
+      }
+    }
+  }
+
+  function categoriaDesdeVencimiento(venc, tipoMovimiento) {
+    const texto = `${venc.tipo || ""} ${venc.concepto || ""} ${venc.notas || ""}`.toLowerCase();
+
+    if (tipoMovimiento === "Ingreso") {
+      if (texto.includes("cuota")) return "Cuotas propietarios";
+      if (texto.includes("derrama")) return "Derramas";
+      if (texto.includes("alquiler")) return "Alquileres";
+      if (texto.includes("interes") || texto.includes("interés")) return "Intereses";
+      if (texto.includes("gestor")) return "Gestoría";
+      return "Otros";
+    }
+
+    const reglas = [
+      ["electric", "Electricidad"],
+      ["agua", "Agua"],
+      ["seguro", "Seguro"],
+      ["limpieza", "Limpieza"],
+      ["ascensor", "Ascensor"],
+      ["administr", "Administración"],
+      ["repar", "Reparaciones"],
+      ["obra", "Obras"],
+      ["mantenimiento", "Mantenimiento"],
+      ["impuesto", "Impuestos"],
+      ["banco", "Banco"],
+      ["gestor", "Gestoría"]
+    ];
+    return reglas.find(([clave]) => texto.includes(clave))?.[1] || "Otros";
+  }
+
+  window.registrarMovimientoVencimiento = async id => {
+    const venc = vencimientos.find(v => v.id === id);
+    if (!venc) return;
+
+    if (venc.facturaId) {
+      await window.pagarFactura(venc.facturaId);
+      return;
+    }
+
+    const importe = Number(venc.importe) || 0;
+    if (importe <= 0) return alert("Este aviso no tiene importe. Complétalo sin pago o edita/crea el movimiento manualmente.");
+
+    if (movimientos.some(m => m.vencimientoId === id)) {
+      alert("Este vencimiento ya tiene un movimiento contabilizado.");
+      return;
+    }
+
+    const tipoMovimiento = venc.tipo === "Cobro" ? "Ingreso" : "Gasto";
+    const estado = tipoMovimiento === "Ingreso" ? "Cobrado" : "Pagado";
+    const accion = tipoMovimiento === "Ingreso" ? "cobro" : "pago";
+    if (!confirm(`¿Registrar este ${accion} de ${euro(importe)} y completar la alerta?`)) return;
+
+    const recurrente = venc.recurrenteId ? recurrentes.find(r => r.id === venc.recurrenteId) : null;
+    const contrato = venc.contratoId ? contratos.find(c => c.id === venc.contratoId) : null;
+
+    try {
+      await addDoc(collection(db, "movimientos"), {
+        fecha: hoyISO(),
+        comunidadId: venc.comunidadId || "",
+        comunidadNombre: venc.comunidadNombre || nombreComunidad(venc.comunidadId),
+        tipo: tipoMovimiento,
+        categoria: categoriaDesdeVencimiento(venc, tipoMovimiento),
+        tercero: recurrente?.tercero || contrato?.empresa || "",
+        concepto: venc.concepto || venc.tipo || "Vencimiento",
+        importe,
+        estado,
+        vencimientoId: venc.id,
+        recurrenteId: venc.recurrenteId || "",
+        contratoId: venc.contratoId || "",
+        creadoPor: auth.currentUser?.email || "",
+        creadoEn: serverTimestamp()
+      });
+
+      await completarVencimientoYAvanzar(venc);
+      document.getElementById("mesGlobal").value = hoyISO().slice(0, 7);
+    } catch (error) {
+      console.error(error);
+      alert(`No se pudo registrar el ${accion}.`);
+    }
+  };
+
   window.completarVencimiento = async id => {
     const venc = vencimientos.find(v => v.id === id);
     if (!venc) return;
 
-    try {
-      await updateDoc(doc(db, "vencimientos", id), {
-        estado: "Completado",
-        completadoPor: auth.currentUser?.email || "",
-        completadoEn: serverTimestamp()
-      });
+    const hayImporte = Number(venc.importe || 0) > 0;
+    const texto = hayImporte
+      ? "Este aviso tiene un importe. ¿Completar SIN registrar ningún pago o cobro?"
+      : "¿Marcar este aviso como completado?";
+    if (!confirm(texto)) return;
 
-      if (venc.recurrenteId) {
-        const recurrente = recurrentes.find(r => r.id === venc.recurrenteId);
-        if (
-          recurrente &&
-          recurrente.activo !== false &&
-          recurrente.proximaFecha === venc.fechaVencimiento
-        ) {
-          await updateDoc(doc(db, "recurrentes", recurrente.id), {
-            proximaFecha: siguienteFecha(recurrente.proximaFecha, recurrente.frecuencia),
-            modificadoEn: serverTimestamp()
-          });
-        }
-      }
+    try {
+      await completarVencimientoYAvanzar(venc);
     } catch (error) {
       console.error(error);
       alert("No se pudo completar el vencimiento.");
@@ -1902,6 +2303,71 @@
     mostrarAlertaInicio(contenedor, "🔵 Facturas pendientes", factPend, bloqueFacturaAlerta);
   }
 
+  function detalleMovimientosHTML(lista, titulo, vacio = "No hay movimientos.") {
+    const ordenados = [...lista].sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
+    return `
+      <h4>${titulo}</h4>
+      ${ordenados.length
+        ? ordenados.map(m => movimientoDetalleHTML(m, { mostrarComunidad: false, sinAcciones: true })).join("")
+        : `<div class="texto-ayuda">${vacio}</div>`}
+    `;
+  }
+
+  window.mostrarDetalleComunidad = (comunidadId, tipo) => {
+    const contenedor = document.getElementById(`detalleResumen_${comunidadId}`);
+    if (!contenedor) return;
+
+    if (!contenedor.classList.contains("oculto") && contenedor.dataset.tipo === tipo) {
+      contenedor.classList.add("oculto");
+      contenedor.dataset.tipo = "";
+      return;
+    }
+
+    const delMes = movimientosDelMes().filter(m => m.comunidadId === comunidadId);
+    const ingresos = delMes.filter(m => m.tipo === "Ingreso" && m.estado === "Cobrado");
+    const gastos = delMes.filter(m => m.tipo === "Gasto" && m.estado === "Pagado");
+    const pendCobro = movimientos.filter(m => m.comunidadId === comunidadId && m.tipo === "Ingreso" && m.estado === "Pendiente");
+    const pendPago = movimientos.filter(m => m.comunidadId === comunidadId && m.tipo === "Gasto" && m.estado === "Pendiente");
+    const factPend = facturas.filter(f => f.comunidadId === comunidadId && f.estado !== "Pagada");
+
+    let html = "";
+    if (tipo === "ingresos") {
+      html = detalleMovimientosHTML(ingresos, "Ingresos cobrados del mes", "No hay ingresos cobrados este mes.");
+    } else if (tipo === "gastos") {
+      html = detalleMovimientosHTML(gastos, "Gastos pagados del mes", "No hay gastos pagados este mes.");
+    } else if (tipo === "saldo") {
+      const totalIngresos = ingresos.reduce((s, m) => s + Number(m.importe || 0), 0);
+      const totalGastos = gastos.reduce((s, m) => s + Number(m.importe || 0), 0);
+      const saldo = totalIngresos - totalGastos;
+      html = `
+        <h4>Cómo se forma el saldo del mes</h4>
+        <div class="item-info">Ingresos cobrados: <strong class="positivo">${euroMas(totalIngresos)}</strong><br>
+        Gastos pagados: <strong class="negativo">${euroMenos(totalGastos)}</strong><br>
+        Saldo: <strong class="${saldo >= 0 ? "positivo" : "negativo"}">${saldo >= 0 ? euroMas(saldo) : "-" + euro(Math.abs(saldo))}</strong></div>
+        ${detalleMovimientosHTML([...ingresos, ...gastos], "Movimientos que forman el saldo")}
+      `;
+    } else if (tipo === "pendCobro") {
+      html = detalleMovimientosHTML(pendCobro, "Pendiente de cobro", "No hay cobros pendientes.");
+    } else if (tipo === "pendPago") {
+      const facturasHtml = factPend.length ? `
+        <h4 style="margin-top:16px;">Facturas pendientes</h4>
+        ${factPend.map(f => `
+          <div class="item">
+            <div class="item-top"><span>${esc(f.proveedor || "Proveedor")} · ${esc(f.numero || "Sin nº")}</span><span class="pendiente">${euro(f.total)}</span></div>
+            <div class="item-info">${esc(f.categoria || "Otros")} · vence ${fechaBonita(f.fechaVencimiento)} · <span class="badge badge-amarillo">Pendiente de pago</span></div>
+          </div>
+        `).join("")}
+      ` : "";
+      html = detalleMovimientosHTML(pendPago, "Pagos pendientes", factPend.length ? "No hay otros pagos pendientes." : "No hay pagos pendientes.") + facturasHtml;
+    } else {
+      html = detalleMovimientosHTML(delMes, "Todos los movimientos del mes", "No hay movimientos este mes.");
+    }
+
+    contenedor.innerHTML = html;
+    contenedor.dataset.tipo = tipo;
+    contenedor.classList.remove("oculto");
+  };
+
   function mostrarComunidades() {
     const contenedor = document.getElementById("listaComunidades");
     contenedor.innerHTML = "";
@@ -1925,6 +2391,16 @@
           .reduce((s, m) => s + Number(m.importe || 0), 0);
         const saldo = ingresos - gastos;
 
+        const pendientesCobroLista = movimientos
+          .filter(m => m.comunidadId === com.id && m.tipo === "Ingreso" && m.estado === "Pendiente");
+        const pendientesPagoLista = movimientos
+          .filter(m => m.comunidadId === com.id && m.tipo === "Gasto" && m.estado === "Pendiente");
+        const facturasPendientesCom = facturas.filter(f => f.comunidadId === com.id && f.estado !== "Pagada");
+
+        const pendientesCobro = pendientesCobroLista.reduce((s, m) => s + Number(m.importe || 0), 0);
+        const pendientesPago = pendientesPagoLista.reduce((s, m) => s + Number(m.importe || 0), 0)
+          + facturasPendientesCom.reduce((s, f) => s + Number(f.total || 0), 0);
+
         const detalles = document.createElement("details");
         detalles.className = "comunidad";
         detalles.innerHTML = `
@@ -1937,15 +2413,8 @@
         const interior = document.createElement("div");
         interior.className = "comunidad-interior";
 
-        const pendientesCobro = movimientos
-          .filter(m => m.comunidadId === com.id && m.tipo === "Ingreso" && m.estado === "Pendiente")
-          .reduce((s, m) => s + Number(m.importe || 0), 0);
-        const pendientesPago = movimientos
-          .filter(m => m.comunidadId === com.id && m.tipo === "Gasto" && m.estado === "Pendiente")
-          .reduce((s, m) => s + Number(m.importe || 0), 0)
-          + facturas
-            .filter(f => f.comunidadId === com.id && f.estado !== "Pagada")
-            .reduce((s, f) => s + Number(f.total || 0), 0);
+        const presidente = com.presidente && typeof com.presidente === "object" ? com.presidente : {};
+        const vecinos = Array.isArray(com.vecinos) ? com.vecinos : [];
 
         interior.innerHTML = `
           <div class="item-info">
@@ -1954,16 +2423,70 @@
             ${com.iban ? `IBAN: ${esc(com.iban)}<br>` : ""}
             ${com.notas ? `${esc(com.notas)}` : ""}
           </div>
+
           <div class="mini-resumen">
-            <div><small>Ingresos</small><strong class="positivo">${euroMas(ingresos)}</strong></div>
-            <div><small>Gastos</small><strong class="negativo">${euroMenos(gastos)}</strong></div>
-            <div><small>Saldo</small><strong class="${saldo >= 0 ? "positivo" : "negativo"}">${saldo >= 0 ? euroMas(saldo) : "-" + euro(Math.abs(saldo))}</strong></div>
+            <button type="button" class="resumen-btn" onclick="mostrarDetalleComunidad('${com.id}','ingresos')"><small>Ingresos</small><strong class="positivo">${euroMas(ingresos)}</strong></button>
+            <button type="button" class="resumen-btn" onclick="mostrarDetalleComunidad('${com.id}','gastos')"><small>Gastos</small><strong class="negativo">${euroMenos(gastos)}</strong></button>
+            <button type="button" class="resumen-btn" onclick="mostrarDetalleComunidad('${com.id}','saldo')"><small>Saldo</small><strong class="${saldo >= 0 ? "positivo" : "negativo"}">${saldo >= 0 ? euroMas(saldo) : "-" + euro(Math.abs(saldo))}</strong></button>
           </div>
           <div class="mini-resumen">
-            <div><small>Pend. cobro</small><strong class="pendiente">${euro(pendientesCobro)}</strong></div>
-            <div><small>Pend. pago</small><strong class="pendiente">${euro(pendientesPago)}</strong></div>
-            <div><small>Movimientos</small><strong>${movCom.length}</strong></div>
+            <button type="button" class="resumen-btn" onclick="mostrarDetalleComunidad('${com.id}','pendCobro')"><small>Pend. cobro</small><strong class="pendiente">${euro(pendientesCobro)}</strong></button>
+            <button type="button" class="resumen-btn" onclick="mostrarDetalleComunidad('${com.id}','pendPago')"><small>Pend. pago</small><strong class="pendiente">${euro(pendientesPago)}</strong></button>
+            <button type="button" class="resumen-btn" onclick="mostrarDetalleComunidad('${com.id}','movimientos')"><small>Movimientos</small><strong>${movCom.length}</strong></button>
           </div>
+          <div id="detalleResumen_${com.id}" class="detalle-resumen oculto"></div>
+
+          <div class="bloque-contactos">
+            <h4 class="contacto-titulo">👤 Presidente</h4>
+            <div class="contacto-card">${personaContactoHTML(presidente, "Todavía no hay presidente identificado.")}</div>
+            <details class="form-desplegable">
+              <summary><span>✏️ Datos del presidente</span><span class="flecha">▶</span></summary>
+              <div class="form-desplegable-interior">
+                <label>Nombre y apellidos</label>
+                <input id="presNombre_${com.id}" type="text" value="${esc(presidente.nombre || "")}" placeholder="Nombre y apellidos">
+                <div class="fila-form">
+                  <div><label>Teléfono</label><input id="presTelefono_${com.id}" type="tel" value="${esc(presidente.telefono || "")}" placeholder="Teléfono"></div>
+                  <div><label>Email</label><input id="presEmail_${com.id}" type="email" value="${esc(presidente.email || "")}" placeholder="correo@ejemplo.com"></div>
+                </div>
+                <label>Dirección</label>
+                <input id="presDireccion_${com.id}" type="text" value="${esc(presidente.direccion || "")}" placeholder="Dirección del presidente">
+                <button type="button" class="btn-principal" onclick="guardarPresidente('${com.id}')">Guardar presidente</button>
+              </div>
+            </details>
+
+            <h4 class="contacto-titulo">👥 Vecinos / propietarios (${vecinos.length})</h4>
+            <div>
+              ${vecinos.length ? vecinos.map((v, indice) => `
+                <div class="contacto-card">
+                  ${personaContactoHTML(v)}
+                  <div class="acciones">
+                    <button type="button" class="btn-mini btn-editar" onclick="editarVecino('${com.id}',${indice})">✏️ Editar</button>
+                    <button type="button" class="btn-mini btn-borrar" onclick="borrarVecino('${com.id}',${indice})">Eliminar</button>
+                  </div>
+                </div>
+              `).join("") : '<div class="texto-ayuda">Todavía no hay vecinos o propietarios registrados.</div>'}
+            </div>
+
+            <details id="vecForm_${com.id}" class="form-desplegable">
+              <summary><span id="vecFormTitulo_${com.id}">➕ Añadir vecino / propietario</span><span class="flecha">▶</span></summary>
+              <div class="form-desplegable-interior">
+                <input id="vecEditIndex_${com.id}" type="hidden" value="-1">
+                <label>Nombre y apellidos</label>
+                <input id="vecNombre_${com.id}" type="text" placeholder="Nombre y apellidos">
+                <div class="fila-form">
+                  <div><label>Teléfono</label><input id="vecTelefono_${com.id}" type="tel" placeholder="Teléfono"></div>
+                  <div><label>Email</label><input id="vecEmail_${com.id}" type="email" placeholder="correo@ejemplo.com"></div>
+                </div>
+                <label>Dirección</label>
+                <input id="vecDireccion_${com.id}" type="text" placeholder="Dirección del vecino / propietario">
+                <div class="botones-modal">
+                  <button type="button" class="btn-principal" style="margin:0" onclick="guardarVecino('${com.id}')">Guardar</button>
+                  <button type="button" class="btn-secundario" onclick="cancelarEdicionVecino('${com.id}')">Limpiar</button>
+                </div>
+              </div>
+            </details>
+          </div>
+
           <h4>Gastos por categoría</h4>
         `;
 
@@ -1984,26 +2507,10 @@
 
           const catInt = document.createElement("div");
           catInt.className = "categoria-interior";
-          if (movCat.length === 0) {
-            catInt.innerHTML = '<div class="texto-ayuda">Sin movimientos este mes.</div>';
-          } else {
-            movCat
-              .sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")))
-              .forEach(m => {
-                catInt.innerHTML += `
-                  <div class="item">
-                    <div class="item-top">
-                      <span>${esc(m.concepto || m.tercero || cat)}</span>
-                      <span class="${m.estado === "Pendiente" ? "pendiente" : "negativo"}">${m.estado === "Pendiente" ? euro(m.importe) : euroMenos(m.importe)}</span>
-                    </div>
-                    <div class="item-info">
-                      ${fechaBonita(m.fecha)} · ${esc(m.tercero || "")} ·
-                      <span class="badge ${m.estado === "Pendiente" ? "badge-amarillo" : "badge-verde"}">${m.estado === "Pendiente" ? "Pendiente de pago" : "Pagado"}</span>
-                    </div>
-                  </div>
-                `;
-              });
-          }
+          catInt.innerHTML = movCat.length
+            ? movCat.sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")))
+              .map(m => movimientoDetalleHTML(m, { mostrarComunidad: false, sinAcciones: true })).join("")
+            : '<div class="texto-ayuda">Sin movimientos este mes.</div>';
           catDet.appendChild(catInt);
           interior.appendChild(catDet);
         });
@@ -2015,11 +2522,22 @@
 
   function mostrarMovimientos() {
     const contenedor = document.getElementById("listaMovimientos");
-    const datos = [...movimientosDelMes()].sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
+    const todos = [...movimientosDelMes()].sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
     contenedor.innerHTML = "";
 
+    document.querySelectorAll(".filtro-mov").forEach(btn => {
+      btn.classList.toggle("activo", btn.dataset.filtro === filtroMovimientos);
+    });
+
+    const datos = todos.filter(m => {
+      if (filtroMovimientos === "Cobrados") return m.tipo === "Ingreso" && m.estado === "Cobrado";
+      if (filtroMovimientos === "Pagados") return m.tipo === "Gasto" && m.estado === "Pagado";
+      if (filtroMovimientos === "Pendientes") return m.estado === "Pendiente";
+      return true;
+    });
+
     if (datos.length === 0) {
-      contenedor.innerHTML = '<div class="lista-vacia">No hay movimientos en este mes.</div>';
+      contenedor.innerHTML = '<div class="lista-vacia">No hay movimientos para este filtro en este mes.</div>';
       return;
     }
 
@@ -2031,37 +2549,15 @@
 
     grupos.forEach(grupo => {
       if (grupo.datos.length === 0) return;
-
+      const total = grupo.datos.reduce((s, m) => s + Number(m.importe || 0), 0);
       const bloque = document.createElement("div");
       bloque.className = "grupo-movimientos";
-      bloque.innerHTML = `<h4>${grupo.titulo} · ${grupo.datos.length}</h4>`;
-
+      bloque.innerHTML = `<h4>${grupo.titulo} · ${grupo.datos.length} · ${euro(total)}</h4>`;
       grupo.datos.forEach(m => {
-        const ingreso = m.tipo === "Ingreso";
-        const pendiente = m.estado === "Pendiente";
-        const estadoVisible = pendiente
-          ? (ingreso ? "Pendiente de cobro" : "Pendiente de pago")
-          : m.estado;
-
         const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `
-          <div class="item-top">
-            <span>${esc(m.concepto || m.categoria || "Movimiento")}</span>
-            <span class="${pendiente ? "pendiente" : (ingreso ? "positivo" : "negativo")}">${pendiente ? euro(m.importe) : (ingreso ? euroMas(m.importe) : euroMenos(m.importe))}</span>
-          </div>
-          <div class="item-info">
-            ${fechaBonita(m.fecha)} · ${esc(nombreComunidad(m.comunidadId))} · ${esc(m.categoria || "")}<br>
-            ${m.tercero ? `${esc(m.tercero)} · ` : ""}<span class="badge ${pendiente ? "badge-amarillo" : "badge-verde"}">${esc(estadoVisible)}</span>
-          </div>
-          <div class="acciones">
-            <button class="btn-mini btn-editar" onclick="editarMovimiento('${m.id}')">✏️ Editar</button>
-            <button class="btn-mini btn-borrar" onclick="borrarMovimiento('${m.id}')">Eliminar</button>
-          </div>
-        `;
-        bloque.appendChild(div);
+        div.innerHTML = movimientoDetalleHTML(m);
+        while (div.firstChild) bloque.appendChild(div.firstChild);
       });
-
       contenedor.appendChild(bloque);
     });
   }
@@ -2095,7 +2591,8 @@
           ${v.notas ? `<br>${esc(v.notas)}` : ""}
         </div>
         <div class="acciones">
-          <button class="btn-mini btn-ok" onclick="completarVencimiento('${v.id}')">✓ Completar</button>
+          ${Number(v.importe || 0) > 0 ? `<button class="btn-mini btn-pago" onclick="registrarMovimientoVencimiento('${v.id}')">💶 ${v.tipo === "Cobro" ? "Registrar cobro" : "Registrar pago"}</button>` : ""}
+          <button class="btn-mini btn-ok" onclick="completarVencimiento('${v.id}')">✓ Completar sin pago</button>
           <button class="btn-mini btn-borrar" onclick="borrarVencimiento('${v.id}')">Eliminar</button>
         </div>
       </div>
