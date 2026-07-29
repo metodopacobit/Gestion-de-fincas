@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f766e">
-  <title>Gestión de fincas</title>
+  <title>ARCAX · Gestión de fincas</title>
 
   <style>
     * { box-sizing: border-box; }
@@ -48,6 +48,13 @@
     header p {
       margin: 6px 0 0;
       opacity: .9;
+    }
+
+    .marca-desarrollador {
+      margin: 5px 0 0;
+      font-size: clamp(10px, 2.8vw, 13px);
+      opacity: .82;
+      white-space: nowrap;
     }
 
     .container {
@@ -755,8 +762,9 @@
 <body>
 
 <header>
-  <h1>🏢 Gestión de fincas</h1>
+  <h1>🏢 ARCAX · Gestión de fincas</h1>
   <p>Comunidades · contabilidad · vencimientos</p>
+  <div class="marca-desarrollador">Software de gestión desarrollado por Travesa Solutions</div>
 </header>
 
 <div class="container">
@@ -2154,7 +2162,7 @@
 
   function formularioNuevoMovimientoComunidadHTML(comunidad) {
     return `
-      <details id="movForm_${comunidad.id}" class="form-desplegable movimiento-comunidad-form">
+      <details id="movForm_${comunidad.id}" data-comunidad-id="${comunidad.id}" class="form-desplegable movimiento-comunidad-form">
         <summary>
           <span>➕ Nuevo movimiento</span>
           <span class="flecha">▶</span>
@@ -2257,8 +2265,15 @@
       if (filtroComunidad && [...filtroComunidad.options].some(op => op.value === comunidadId)) {
         filtroComunidad.value = comunidadId;
       }
+      // Mantener abierto el formulario y la comunidad después de guardar.
+      // Firestore actualizará la pantalla en tiempo real, pero mostrarComunidades()
+      // restaura el estado abierto para no sacar al usuario de donde está trabajando.
       const formulario = document.getElementById(`movForm_${comunidadId}`);
-      if (formulario) formulario.open = false;
+      if (formulario) {
+        formulario.open = true;
+        const comunidadAbierta = formulario.closest("details.comunidad");
+        if (comunidadAbierta) comunidadAbierta.open = true;
+      }
     } catch (error) {
       console.error(error);
       alert("No se pudo guardar el movimiento.");
@@ -3306,6 +3321,24 @@
 
   function mostrarComunidades() {
     const contenedor = document.getElementById("listaComunidades");
+
+    // Guardar el estado visual antes de reconstruir la lista.
+    // Los onSnapshot de Firebase llaman a esta función tras cada alta o cambio;
+    // sin esta memoria, la comunidad y sus formularios se cerrarían al guardar.
+    const comunidadesAbiertas = new Set(
+      [...contenedor.querySelectorAll("details.comunidad[open]")]
+        .map(det => det.dataset.comunidadId || "")
+        .filter(Boolean)
+    );
+    const formulariosMovimientoAbiertos = new Set(
+      [...contenedor.querySelectorAll("details.movimiento-comunidad-form[open]")]
+        .map(det => det.dataset.comunidadId || "")
+        .filter(Boolean)
+    );
+    const historicoComunidadesAbierto = !!contenedor.querySelector("details.historico-comunidades[open]");
+    const scrollAntesDeActualizar = window.scrollY;
+    const mantenerPosicion = comunidadesAbiertas.size > 0 || formulariosMovimientoAbiertos.size > 0;
+
     contenedor.innerHTML = "";
 
     if (comunidades.length === 0) {
@@ -3346,6 +3379,8 @@
 
         const detalles = document.createElement("details");
         detalles.className = activa ? "comunidad" : "comunidad comunidad-inactiva";
+        detalles.dataset.comunidadId = com.id;
+        if (comunidadesAbiertas.has(com.id)) detalles.open = true;
         detalles.innerHTML = `
           <summary>
             <span><span class="flecha">▶</span> 🏢 ${esc(com.nombre)} <span class="badge ${activa ? "badge-verde" : ""}">${activa ? "Activa" : "Inactiva"}</span></span>
@@ -3468,6 +3503,11 @@
           <h4>Gastos por categoría</h4>
         `;
 
+        const formularioMovimiento = interior.querySelector("details.movimiento-comunidad-form");
+        if (formularioMovimiento && formulariosMovimientoAbiertos.has(com.id)) {
+          formularioMovimiento.open = true;
+        }
+
         categoriasGasto.forEach(cat => {
           const movCat = movCom.filter(m => m.tipo === "Gasto" && m.categoria === cat);
           const total = movCat
@@ -3507,8 +3547,15 @@
           <span>${inactivas.length}</span>
         </summary>
       `;
+      if (historicoComunidadesAbierto) historico.open = true;
       historico.appendChild(historicoInterior);
       contenedor.appendChild(historico);
+    }
+
+    if (mantenerPosicion) {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollAntesDeActualizar, left: 0, behavior: "auto" });
+      });
     }
   }
 
