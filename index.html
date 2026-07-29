@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f766e">
-  <title>ARCAX · Gestión de fincas</title>
+  <title>Vilanovaracing · Sistema de gestión empresarial</title>
 
   <style>
     * { box-sizing: border-box; }
@@ -55,6 +55,120 @@
       font-size: clamp(10px, 2.8vw, 13px);
       opacity: .82;
       white-space: nowrap;
+    }
+
+    .encabezado-general {
+      background: #1f2937;
+    }
+
+    .pantalla-entrada {
+      text-align: center;
+      padding: 24px 18px;
+    }
+
+    .pantalla-entrada h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .pantalla-entrada .texto-entrada {
+      margin: 0 0 20px;
+      color: var(--gris);
+      line-height: 1.5;
+    }
+
+    .empresas-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .empresa-card {
+      width: 100%;
+      min-height: 170px;
+      border: 1px solid var(--borde);
+      border-radius: 16px;
+      background: white;
+      padding: 22px 16px;
+      font-family: inherit;
+      color: var(--texto);
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .empresa-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 16px rgba(0,0,0,.10);
+    }
+
+    .empresa-icono {
+      display: block;
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    .empresa-nombre {
+      display: block;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .empresa-tipo {
+      display: block;
+      color: var(--gris);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .creditos-corporativos {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--borde);
+      color: var(--gris);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .creditos-corporativos strong {
+      color: var(--texto);
+    }
+
+    .acciones-usuario {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .panel-mt {
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    .panel-mt .mt-icono {
+      font-size: 54px;
+      margin-bottom: 10px;
+    }
+
+    .panel-mt h2 {
+      margin: 0 0 8px;
+    }
+
+    .panel-mt p {
+      color: var(--gris);
+      line-height: 1.55;
+      margin: 8px auto;
+      max-width: 600px;
+    }
+
+    @media(max-width: 560px) {
+      .empresas-grid { grid-template-columns: 1fr; }
+      .empresa-card { min-height: 145px; }
+      .acciones-usuario { width: 100%; justify-content: flex-start; }
+      .usuario { align-items: flex-start; flex-wrap: wrap; }
     }
 
     .container {
@@ -761,9 +875,20 @@
 
 <body>
 
-<header>
+<header id="encabezadoGeneral" class="encabezado-general">
+  <h1>🏢 Sistema de gestión empresarial</h1>
+  <p>Acceso a empresas</p>
+</header>
+
+<header id="encabezadoArcax" class="oculto">
   <h1>🏢 ARCAX · Gestión de fincas</h1>
   <p>Comunidades · contabilidad · vencimientos</p>
+  <div class="marca-desarrollador">Software de gestión desarrollado por Travesa Solutions</div>
+</header>
+
+<header id="encabezadoMT" class="oculto">
+  <h1>🚗 MT Formación · Autoescuela</h1>
+  <p>Alumnos · formación · clases · exámenes</p>
   <div class="marca-desarrollador">Software de gestión desarrollado por Travesa Solutions</div>
 </header>
 
@@ -771,8 +896,46 @@
 
   <section id="pantallaLogin" class="panel login">
     <h2>🔐 Acceso</h2>
-    <p>Entra con una cuenta de Google autorizada para trabajar con las comunidades.</p>
+    <p>Entra con una cuenta de Google autorizada para acceder al sistema de gestión.</p>
     <button id="botonLogin" class="btn-google">Entrar con Google</button>
+    <div class="creditos-corporativos">
+      <div><strong>Aplicación corporativa de Vilanovaracing</strong></div>
+      <div>Software desarrollado por Travesa Solutions</div>
+    </div>
+  </section>
+
+  <section id="selectorEmpresas" class="oculto">
+    <section class="panel usuario">
+      <div>
+        <strong id="nombreUsuarioEntrada">Usuario</strong>
+        <div id="emailUsuarioEntrada" class="usuario-email"></div>
+      </div>
+      <button id="botonSalirEntrada" class="btn-salir">Salir</button>
+    </section>
+
+    <section class="panel pantalla-entrada">
+      <h2>Selecciona la empresa</h2>
+      <p class="texto-entrada">Accede al área de trabajo que necesites.</p>
+
+      <div class="empresas-grid">
+        <button id="abrirArcax" class="empresa-card" type="button">
+          <span class="empresa-icono">🏢</span>
+          <span class="empresa-nombre">ARCAX</span>
+          <span class="empresa-tipo">Gestión de fincas</span>
+        </button>
+
+        <button id="abrirMT" class="empresa-card" type="button">
+          <span class="empresa-icono">🚗</span>
+          <span class="empresa-nombre">MT Formación</span>
+          <span class="empresa-tipo">Autoescuela · Formación</span>
+        </button>
+      </div>
+
+      <div class="creditos-corporativos">
+        <div><strong>Aplicación corporativa de Vilanovaracing</strong></div>
+        <div>Software desarrollado por Travesa Solutions</div>
+      </div>
+    </section>
   </section>
 
   <div id="aplicacion" class="oculto">
@@ -783,7 +946,10 @@
         <div id="emailUsuario" class="usuario-email"></div>
         <div id="estadoConexion" class="estado">☁️ Sincronizando...</div>
       </div>
-      <button id="botonSalir" class="btn-salir">Salir</button>
+      <div class="acciones-usuario">
+        <button id="volverEmpresasArcax" class="btn-salir" type="button">← Empresas</button>
+        <button id="botonSalir" class="btn-salir" type="button">Salir</button>
+      </div>
     </section>
 
     <!-- ALERTAS PRINCIPALES -->
@@ -1154,6 +1320,30 @@
     </details>
 
   </div>
+
+  <section id="mtFormacion" class="oculto">
+    <section class="panel usuario">
+      <div>
+        <strong id="nombreUsuarioMT">Usuario</strong>
+        <div id="emailUsuarioMT" class="usuario-email"></div>
+      </div>
+      <div class="acciones-usuario">
+        <button id="volverEmpresasMT" class="btn-salir" type="button">← Empresas</button>
+        <button id="botonSalirMT" class="btn-salir" type="button">Salir</button>
+      </div>
+    </section>
+
+    <section class="panel panel-mt">
+      <div class="mt-icono">🚗</div>
+      <h2>MT Formación</h2>
+      <p><strong>Área de Autoescuela y Formación</strong></p>
+      <p>Esta primera versión deja creada y separada el área de MT Formación. A partir de aquí desarrollaremos sus módulos sin mezclar sus datos con ARCAX.</p>
+      <div class="creditos-corporativos">
+        <div><strong>Aplicación corporativa de Vilanovaracing</strong></div>
+        <div>Software desarrollado por Travesa Solutions</div>
+      </div>
+    </section>
+  </section>
 </div>
 
 <!-- MODAL EDICIÓN DE COMUNIDAD -->
@@ -1260,8 +1450,12 @@
   </div>
 </div>
 
-<footer>
-  Gestión de fincas · Datos compartidos y guardados en Firebase
+<footer id="pieArcax" class="oculto">
+  ARCAX · Gestión de fincas · Datos compartidos y guardados en Firebase
+</footer>
+
+<footer id="pieMT" class="oculto">
+  MT Formación · Autoescuela · Área de gestión en desarrollo
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1338,6 +1532,7 @@
   let contratos = [];
   let desuscripciones = [];
   let filtroMovimientos = "Todos";
+  let usuarioActual = null;
 
   const euroFormatter = new Intl.NumberFormat("es-ES", {
     style: "currency",
@@ -1624,7 +1819,7 @@
         </div>
         <div class="item-info">
           ${fechaBonita(m.fecha)}${mostrarComunidad ? ` · ${esc(nombreComunidad(m.comunidadId))}` : ""} · ${esc(m.categoria || "")}<br>
-          ${m.vecinoNombre ? `👤 ${esc(m.vecinoNombre)} · ` : (m.ambito === "Comunidad" ? "🏢 Comunidad completa · " : "")}${m.tercero ? `${esc(m.tercero)} · ` : ""}<span class="badge ${pendiente ? "badge-amarillo" : "badge-verde"}">${esc(estadoVisibleMovimiento(m))}</span>
+           ${m.vecinoNombre ? `👤 ${esc(m.vecinoNombre)} · ` : (m.ambito === "Comunidad" ? "🏢 Comunidad completa · " : "")}${m.tercero ? `${esc(m.tercero)} · ` : ""}<span class="badge ${pendiente ? "badge-amarillo" : "badge-verde"}">${esc(estadoVisibleMovimiento(m))}</span>
         </div>
         ${opciones.sinAcciones ? "" : `
           <div class="acciones">
@@ -1754,28 +1949,93 @@
     }
   });
 
-  document.getElementById("botonSalir").addEventListener("click", async () => {
+  async function cerrarSesion() {
     await signOut(auth);
-  });
+  }
+
+  function nombreVisibleUsuario(usuario) {
+    return usuario?.displayName || (usuario?.email === ADMIN_EMAIL ? "Administrador" : "Empleado");
+  }
+
+  function ocultarAreas() {
+    document.getElementById("selectorEmpresas").classList.add("oculto");
+    document.getElementById("aplicacion").classList.add("oculto");
+    document.getElementById("mtFormacion").classList.add("oculto");
+    document.getElementById("encabezadoArcax").classList.add("oculto");
+    document.getElementById("encabezadoMT").classList.add("oculto");
+    document.getElementById("pieArcax").classList.add("oculto");
+    document.getElementById("pieMT").classList.add("oculto");
+  }
+
+  function mostrarSelectorEmpresas() {
+    if (!usuarioActual) return;
+    limpiarEscuchas();
+    ocultarAreas();
+    document.getElementById("pantallaLogin").classList.add("oculto");
+    document.getElementById("encabezadoGeneral").classList.remove("oculto");
+    document.getElementById("selectorEmpresas").classList.remove("oculto");
+    document.getElementById("nombreUsuarioEntrada").textContent = nombreVisibleUsuario(usuarioActual);
+    document.getElementById("emailUsuarioEntrada").textContent = usuarioActual.email || "";
+    document.title = "Vilanovaracing · Sistema de gestión empresarial";
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function entrarArcax() {
+    if (!usuarioActual) return;
+    limpiarEscuchas();
+    ocultarAreas();
+    document.getElementById("pantallaLogin").classList.add("oculto");
+    document.getElementById("encabezadoGeneral").classList.add("oculto");
+    document.getElementById("encabezadoArcax").classList.remove("oculto");
+    document.getElementById("aplicacion").classList.remove("oculto");
+    document.getElementById("pieArcax").classList.remove("oculto");
+
+    document.getElementById("nombreUsuario").textContent = nombreVisibleUsuario(usuarioActual);
+    document.getElementById("emailUsuario").textContent = usuarioActual.email || "";
+    document.getElementById("estadoConexion").textContent = "☁️ Sincronizando...";
+    document.title = "ARCAX · Gestión de fincas";
+
+    iniciarEscuchas();
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function entrarMT() {
+    if (!usuarioActual) return;
+    limpiarEscuchas();
+    ocultarAreas();
+    document.getElementById("pantallaLogin").classList.add("oculto");
+    document.getElementById("encabezadoGeneral").classList.add("oculto");
+    document.getElementById("encabezadoMT").classList.remove("oculto");
+    document.getElementById("mtFormacion").classList.remove("oculto");
+    document.getElementById("pieMT").classList.remove("oculto");
+    document.getElementById("nombreUsuarioMT").textContent = nombreVisibleUsuario(usuarioActual);
+    document.getElementById("emailUsuarioMT").textContent = usuarioActual.email || "";
+    document.title = "MT Formación · Autoescuela";
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  document.getElementById("botonSalir").addEventListener("click", cerrarSesion);
+  document.getElementById("botonSalirEntrada").addEventListener("click", cerrarSesion);
+  document.getElementById("botonSalirMT").addEventListener("click", cerrarSesion);
+  document.getElementById("abrirArcax").addEventListener("click", entrarArcax);
+  document.getElementById("abrirMT").addEventListener("click", entrarMT);
+  document.getElementById("volverEmpresasArcax").addEventListener("click", mostrarSelectorEmpresas);
+  document.getElementById("volverEmpresasMT").addEventListener("click", mostrarSelectorEmpresas);
 
   onAuthStateChanged(auth, usuario => {
     limpiarEscuchas();
+    usuarioActual = usuario || null;
 
     if (!usuario) {
+      ocultarAreas();
+      document.getElementById("selectorEmpresas").classList.add("oculto");
       document.getElementById("pantallaLogin").classList.remove("oculto");
-      document.getElementById("aplicacion").classList.add("oculto");
+      document.getElementById("encabezadoGeneral").classList.remove("oculto");
+      document.title = "Vilanovaracing · Sistema de gestión empresarial";
       return;
     }
 
-    document.getElementById("pantallaLogin").classList.add("oculto");
-    document.getElementById("aplicacion").classList.remove("oculto");
-
-    document.getElementById("nombreUsuario").textContent =
-      usuario.displayName || (usuario.email === ADMIN_EMAIL ? "Administrador" : "Empleado");
-    document.getElementById("emailUsuario").textContent = usuario.email || "";
-    document.getElementById("estadoConexion").textContent = "☁️ Sincronizando...";
-
-    iniciarEscuchas();
+    mostrarSelectorEmpresas();
   });
 
   function limpiarEscuchas() {
