@@ -662,6 +662,93 @@
       color: #166534;
     }
 
+
+    .selector-vista {
+      margin: 12px 0 4px;
+      padding: 12px;
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      background: #f9fafb;
+    }
+
+    .selector-vista label { margin-top: 0; }
+
+    .balance-historial {
+      margin: 14px 0;
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .balance-historial > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #f9fafb;
+    }
+
+    .balance-historial > summary::-webkit-details-marker { display: none; }
+    .balance-historial[open] > summary .flecha { transform: rotate(90deg); }
+
+    .balance-resumen {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .balance-resumen > div {
+      padding: 10px;
+      border-radius: 10px;
+      background: #f9fafb;
+      text-align: center;
+    }
+
+    .balance-resumen small { display:block; color:var(--gris); }
+    .balance-resumen strong { display:block; margin-top:4px; }
+
+    .balance-linea {
+      padding: 9px 0;
+      border-bottom: 1px solid var(--borde);
+      font-size: 14px;
+    }
+
+    .balance-linea:last-child { border-bottom: none; }
+
+    .notificacion-card {
+      border-bottom: 1px solid var(--borde);
+      padding: 12px 0;
+    }
+
+    .notificacion-card:last-child { border-bottom: none; }
+
+    .notificacion-texto {
+      margin-top: 7px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .badge-presidente {
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+
+    .acciones-comunidad .btn-balance {
+      background: #e0f2fe;
+      color: #075985;
+      flex-basis: 100%;
+      text-align: center;
+    }
+
+    @media(max-width: 560px) {
+      .balance-resumen { grid-template-columns: 1fr 1fr; }
+    }
+
 </style>
 </head>
 
@@ -755,56 +842,70 @@
       </summary>
       <div class="contenido-seccion">
 
-        <h3 class="subtitulo">➕ Nuevo movimiento</h3>
+        <details id="desplegableNuevoMovimiento" class="form-desplegable">
+          <summary>
+            <span>➕ Nuevo movimiento</span>
+            <span class="flecha">▶</span>
+          </summary>
+          <div class="form-desplegable-interior">
+            <div class="fila-form">
+              <div>
+                <label>Comunidad</label>
+                <select id="movComunidad"></select>
+              </div>
+              <div>
+                <label>Fecha</label>
+                <input id="movFecha" type="date">
+              </div>
+            </div>
 
-        <div class="fila-form">
-          <div>
-            <label>Fecha</label>
-            <input id="movFecha" type="date">
-          </div>
-          <div>
-            <label>Comunidad</label>
-            <select id="movComunidad"></select>
-          </div>
-        </div>
+            <label>Propietario / ámbito</label>
+            <select id="movPersona"></select>
+            <div class="texto-ayuda">Puedes registrar el movimiento para toda la comunidad o vincularlo a un propietario concreto.</div>
 
-        <div class="fila-form">
-          <div>
-            <label>Tipo</label>
-            <select id="movTipo">
-              <option value="Ingreso">Ingreso</option>
-              <option value="Gasto">Gasto</option>
-            </select>
-          </div>
-          <div>
-            <label>Categoría</label>
-            <select id="movCategoria"></select>
-          </div>
-        </div>
+            <div class="fila-form">
+              <div>
+                <label>Tipo</label>
+                <select id="movTipo">
+                  <option value="Ingreso">Ingreso</option>
+                  <option value="Gasto">Gasto</option>
+                </select>
+              </div>
+              <div>
+                <label>Categoría</label>
+                <select id="movCategoria"></select>
+              </div>
+            </div>
 
-        <label>Proveedor / Propietario</label>
-        <input id="movTercero" type="text" placeholder="Ej. Mapfre, Otis, propietario 2ºA...">
+            <label>Proveedor / tercero (opcional)</label>
+            <input id="movTercero" type="text" placeholder="Ej. Mapfre, Otis...">
 
-        <label>Concepto</label>
-        <input id="movConcepto" type="text" placeholder="Ej. Seguro anual, cuota julio...">
+            <label>Concepto</label>
+            <input id="movConcepto" type="text" placeholder="Ej. Seguro anual, cuota julio...">
 
-        <div class="fila-form">
-          <div>
-            <label>Importe (€)</label>
-            <input id="movImporte" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+            <div class="fila-form">
+              <div>
+                <label>Importe (€)</label>
+                <input id="movImporte" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+              </div>
+              <div>
+                <label>Estado</label>
+                <select id="movEstado"></select>
+                <div id="movEstadoAyuda" class="estado-explicacion">Solo lo cobrado o pagado computa en los totales.</div>
+              </div>
+            </div>
+
+            <button id="guardarMovimiento" class="btn-principal">Guardar movimiento</button>
           </div>
-          <div>
-            <label>Estado</label>
-            <select id="movEstado"></select>
-            <div id="movEstadoAyuda" class="estado-explicacion">Solo lo cobrado o pagado computa en los totales.</div>
-          </div>
-        </div>
-
-        <button id="guardarMovimiento" class="btn-principal">Guardar movimiento</button>
+        </details>
 
         <hr class="separador">
 
         <h3 class="subtitulo">Movimientos del mes</h3>
+        <div class="selector-vista">
+          <label>Ver ingresos y pagos de</label>
+          <select id="movFiltroComunidad"></select>
+        </div>
         <div class="filtros-movimientos" aria-label="Filtrar movimientos por estado">
           <button type="button" class="filtro-mov activo" data-filtro="Todos" onclick="cambiarFiltroMovimientos('Todos')">Todos</button>
           <button type="button" class="filtro-mov" data-filtro="Cobrados" onclick="cambiarFiltroMovimientos('Cobrados')">Cobrados</button>
@@ -812,6 +913,47 @@
           <button type="button" class="filtro-mov" data-filtro="Pendientes" onclick="cambiarFiltroMovimientos('Pendientes')">Pendientes</button>
         </div>
         <div id="listaMovimientos"></div>
+      </div>
+    </details>
+
+    <!-- NOTIFICACIONES -->
+    <details class="seccion">
+      <summary>
+        <span>📣 Notificaciones</span>
+        <span class="flecha">▶</span>
+      </summary>
+      <div class="contenido-seccion">
+        <p class="texto-ayuda">La fecha y la hora se guardan automáticamente al registrar cada comunicación.</p>
+
+        <details class="form-desplegable">
+          <summary><span>📤 Notificaciones realizadas</span><span class="flecha">▶</span></summary>
+          <div class="form-desplegable-interior">
+            <div class="fila-form">
+              <div><label>Comunidad</label><select id="notRealComunidad"></select></div>
+              <div><label>Destinatario</label><select id="notRealPersona"></select></div>
+            </div>
+            <label>Notificación / incidencia</label>
+            <textarea id="notRealTexto" placeholder="Escribe aquí la notificación realizada, incidencia comunicada, gestión efectuada..."></textarea>
+            <button id="guardarNotReal" class="btn-principal">Guardar notificación</button>
+            <hr class="separador">
+            <div id="listaNotReal"></div>
+          </div>
+        </details>
+
+        <details class="form-desplegable">
+          <summary><span>📥 Avisos recibidos</span><span class="flecha">▶</span></summary>
+          <div class="form-desplegable-interior">
+            <div class="fila-form">
+              <div><label>Comunidad</label><select id="notRecComunidad"></select></div>
+              <div><label>Recibido de</label><select id="notRecPersona"></select></div>
+            </div>
+            <label>Aviso / incidencia</label>
+            <textarea id="notRecTexto" placeholder="Escribe aquí el aviso recibido o la incidencia comunicada..."></textarea>
+            <button id="guardarNotRec" class="btn-principal">Guardar aviso recibido</button>
+            <hr class="separador">
+            <div id="listaNotRec"></div>
+          </div>
+        </details>
       </div>
     </details>
 
@@ -827,9 +969,15 @@
 
         <div class="fila-form">
           <div>
+            <label>Comunidad</label>
+            <select id="venComunidad"></select>
+          </div>
+          <div>
             <label>Tipo</label>
             <select id="venTipo">
               <option value="Cobro">Cobro</option>
+              <option value="Giro">Giros</option>
+              <option value="Cuota">Cuotas</option>
               <option value="Pago">Pago</option>
               <option value="Seguro">Seguro</option>
               <option value="Contrato">Contrato</option>
@@ -839,14 +987,13 @@
               <option value="Otro">Otro</option>
             </select>
           </div>
-          <div>
-            <label>Comunidad</label>
-            <select id="venComunidad"></select>
-          </div>
         </div>
 
+        <label>Propietario / ámbito</label>
+        <select id="venPersona"></select>
+
         <label>Concepto</label>
-        <input id="venConcepto" type="text" placeholder="Ej. Renovación seguro comunidad">
+        <input id="venConcepto" type="text" placeholder="Ej. Giro cuota 2ºA, renovación seguro...">
 
         <div class="fila-form">
           <div>
@@ -868,7 +1015,6 @@
         <button id="guardarVencimiento" class="btn-principal">Guardar vencimiento</button>
 
         <hr class="separador">
-
         <div id="listaVencimientos"></div>
       </div>
     </details>
@@ -1103,14 +1249,17 @@
 
     <div class="fila-form">
       <div>
-        <label>Fecha</label>
-        <input id="editMovFecha" type="date">
-      </div>
-      <div>
         <label>Comunidad</label>
         <select id="editMovComunidad"></select>
       </div>
+      <div>
+        <label>Fecha</label>
+        <input id="editMovFecha" type="date">
+      </div>
     </div>
+
+    <label>Propietario / ámbito</label>
+    <select id="editMovPersona"></select>
 
     <div class="fila-form">
       <div>
@@ -1150,6 +1299,16 @@
   </div>
 </div>
 
+
+<!-- MODAL BALANCE DE COMUNIDAD -->
+<div id="modalBalance" class="modal-fondo oculto">
+  <div class="modal">
+    <h2>📊 Balance de comunidad</h2>
+    <div id="contenidoBalance"></div>
+    <button id="cerrarBalance" class="btn-secundario" style="margin-top:16px;">Cerrar</button>
+  </div>
+</div>
+
 <footer>
   Gestión de fincas · Datos compartidos y guardados en Firebase
 </footer>
@@ -1173,7 +1332,8 @@
     deleteDoc,
     doc,
     onSnapshot,
-    serverTimestamp
+    serverTimestamp,
+    arrayUnion
   } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1352,8 +1512,9 @@
     const telefono = String(persona.telefono || "").trim();
     const email = String(persona.email || "").trim();
     const direccion = String(persona.direccion || "").trim();
+    const iban = String(persona.iban || "").trim();
 
-    if (!nombre && !telefono && !email && !direccion) {
+    if (!nombre && !telefono && !email && !direccion && !iban) {
       return `<div class="texto-ayuda">${vacio}</div>`;
     }
 
@@ -1362,9 +1523,134 @@
       <div class="contacto-linea">
         ${telefono ? `📞 <a href="tel:${esc(telefonoHref(telefono))}">${esc(telefono)}</a><br>` : ""}
         ${email ? `✉️ <a href="mailto:${esc(email)}">${esc(email)}</a><br>` : ""}
-        ${direccion ? `📍 ${esc(direccion)}` : ""}
+        ${direccion ? `📍 ${esc(direccion)}<br>` : ""}
+        ${iban ? `🏦 IBAN: ${esc(iban)}` : ""}
       </div>
     `;
+  }
+
+  function normalizarNombre(valor) {
+    return String(valor || "").trim().toLocaleLowerCase("es-ES");
+  }
+
+  function vecinosVisibles(comunidad) {
+    if (!comunidad) return [];
+    const base = Array.isArray(comunidad.vecinos)
+      ? comunidad.vecinos.map((v, indice) => ({ ...v, __indiceOriginal: indice }))
+      : [];
+    const presidente = comunidad.presidente && typeof comunidad.presidente === "object"
+      ? comunidad.presidente
+      : {};
+    const hayPresidente = Boolean(
+      String(presidente.nombre || "").trim() ||
+      String(presidente.telefono || "").trim() ||
+      String(presidente.email || "").trim() ||
+      String(presidente.direccion || "").trim() ||
+      String(presidente.iban || "").trim()
+    );
+
+    if (!hayPresidente) return base;
+
+    const indicePresidente = base.findIndex(v =>
+      (presidente.vecinoId && v.id === presidente.vecinoId) || v.esPresidente === true
+    );
+
+    if (indicePresidente >= 0) {
+      base[indicePresidente].esPresidente = true;
+      return base;
+    }
+
+    return [{
+      ...presidente,
+      id: presidente.vecinoId || `pres_${comunidad.id}`,
+      esPresidente: true,
+      __presidenteVirtual: true,
+      __indiceOriginal: -1
+    }, ...base];
+  }
+
+  function valorPersonaSelector(persona) {
+    if (!persona) return "__comunidad__";
+    if (persona.id) return String(persona.id);
+    if (Number.isInteger(persona.__indiceOriginal) && persona.__indiceOriginal >= 0) {
+      return `idx:${persona.__indiceOriginal}`;
+    }
+    return "__comunidad__";
+  }
+
+  function personaSeleccionada(comunidadId, valor) {
+    if (!valor || valor === "__comunidad__") return null;
+    const comunidad = comunidadPorId(comunidadId);
+    if (!comunidad) return null;
+    if (String(valor).startsWith("idx:")) {
+      const indice = Number(String(valor).slice(4));
+      return Array.isArray(comunidad.vecinos) ? comunidad.vecinos[indice] || null : null;
+    }
+    return vecinosVisibles(comunidad).find(v => String(v.id || "") === String(valor)) || null;
+  }
+
+  function rellenarSelectPersonas(selectId, comunidadId, textoComunidad = "Toda la comunidad", seleccion = "") {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const actual = seleccion || select.value;
+    const comunidad = comunidadPorId(comunidadId);
+    select.innerHTML = "";
+
+    const general = document.createElement("option");
+    general.value = "__comunidad__";
+    general.textContent = textoComunidad;
+    select.appendChild(general);
+
+    if (comunidad) {
+      vecinosVisibles(comunidad).forEach(persona => {
+        const op = document.createElement("option");
+        op.value = valorPersonaSelector(persona);
+        op.textContent = `${persona.nombre || "Propietario sin nombre"}${persona.esPresidente ? " · Presidente" : ""}`;
+        select.appendChild(op);
+      });
+    }
+
+    if ([...select.options].some(o => o.value === actual)) select.value = actual;
+    else select.value = "__comunidad__";
+  }
+
+  function rellenarFiltroComunidadesMovimientos() {
+    const select = document.getElementById("movFiltroComunidad");
+    if (!select) return;
+    const actual = select.value || "__todas__";
+    select.innerHTML = '<option value="__todas__">Todas las comunidades</option>';
+    [...comunidades]
+      .sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es"))
+      .forEach(com => {
+        const op = document.createElement("option");
+        op.value = com.id;
+        op.textContent = `${com.nombre || "Comunidad"}${esComunidadActiva(com) ? "" : " · Inactiva"}`;
+        select.appendChild(op);
+      });
+    if ([...select.options].some(o => o.value === actual)) select.value = actual;
+  }
+
+  function actualizarSelectoresPersonas() {
+    const pares = [
+      ["movPersona", "movComunidad", "Toda la comunidad"],
+      ["venPersona", "venComunidad", "Toda la comunidad"],
+      ["notRealPersona", "notRealComunidad", "Toda la comunidad"],
+      ["notRecPersona", "notRecComunidad", "Toda la comunidad"]
+    ];
+    pares.forEach(([selectPersona, selectComunidad, texto]) => {
+      const comunidadId = document.getElementById(selectComunidad)?.value || "";
+      rellenarSelectPersonas(selectPersona, comunidadId, texto);
+    });
+  }
+
+  function fechaHoraBonita(valor) {
+    if (!valor) return "";
+    const fecha = new Date(valor);
+    if (Number.isNaN(fecha.getTime())) return String(valor);
+    return new Intl.DateTimeFormat("es-ES", {
+      dateStyle: "short",
+      timeStyle: "short"
+    }).format(fecha);
   }
 
   function estadoVisibleMovimiento(m) {
@@ -1386,7 +1672,7 @@
         </div>
         <div class="item-info">
           ${fechaBonita(m.fecha)}${mostrarComunidad ? ` · ${esc(nombreComunidad(m.comunidadId))}` : ""} · ${esc(m.categoria || "")}<br>
-          ${m.tercero ? `${esc(m.tercero)} · ` : ""}<span class="badge ${pendiente ? "badge-amarillo" : "badge-verde"}">${esc(estadoVisibleMovimiento(m))}</span>
+          ${m.vecinoNombre ? `👤 ${esc(m.vecinoNombre)} · ` : (m.ambito === "Comunidad" ? "🏢 Comunidad completa · " : "")}${m.tercero ? `${esc(m.tercero)} · ` : ""}<span class="badge ${pendiente ? "badge-amarillo" : "badge-verde"}">${esc(estadoVisibleMovimiento(m))}</span>
         </div>
         ${opciones.sinAcciones ? "" : `
           <div class="acciones">
@@ -1416,7 +1702,9 @@
       "venComunidad",
       "recComunidad",
       "facComunidad",
-      "conComunidad"
+      "conComunidad",
+      "notRealComunidad",
+      "notRecComunidad"
     ];
     const idsHistoricos = ["editMovComunidad"];
 
@@ -1449,10 +1737,11 @@
         select.appendChild(op);
       });
 
-      if ([...select.options].some(o => o.value === actual)) {
-        select.value = actual;
-      }
+      if ([...select.options].some(o => o.value === actual)) select.value = actual;
     });
+
+    rellenarFiltroComunidadesMovimientos();
+    actualizarSelectoresPersonas();
   }
 
   function rellenarCategorias(selectId, tipo, seleccion = "") {
@@ -1503,6 +1792,8 @@
   rellenarCategorias("editMovCategoria", "Ingreso");
   rellenarEstados("editMovEstado", "Ingreso");
   rellenarCategorias("facCategoria", "Gasto");
+  rellenarFiltroComunidadesMovimientos();
+  actualizarSelectoresPersonas();
 
   /* LOGIN */
 
@@ -1732,12 +2023,49 @@
       nombre: document.getElementById(`presNombre_${comunidadId}`)?.value.trim() || "",
       telefono: document.getElementById(`presTelefono_${comunidadId}`)?.value.trim() || "",
       email: document.getElementById(`presEmail_${comunidadId}`)?.value.trim() || "",
-      direccion: document.getElementById(`presDireccion_${comunidadId}`)?.value.trim() || ""
+      direccion: document.getElementById(`presDireccion_${comunidadId}`)?.value.trim() || "",
+      iban: document.getElementById(`presIban_${comunidadId}`)?.value.trim() || ""
     };
+
+    if (!presidente.nombre) return alert("Escribe el nombre del presidente.");
+
+    const vecinos = Array.isArray(comunidad.vecinos) ? comunidad.vecinos.map(v => ({ ...v })) : [];
+    vecinos.forEach(v => { v.esPresidente = false; });
+
+    let indice = -1;
+    const anteriorId = comunidad.presidente?.vecinoId;
+    const nombreAnterior = normalizarNombre(comunidad.presidente?.nombre);
+    const mismoPresidente = nombreAnterior && nombreAnterior === normalizarNombre(presidente.nombre);
+
+    // Si cambia el presidente y el anterior aún no estaba guardado en la lista de vecinos,
+    // lo conservamos como propietario histórico en lugar de perder sus datos.
+    if (!mismoPresidente && nombreAnterior) {
+      const yaExisteAnterior = vecinos.some(v =>
+        (anteriorId && v.id === anteriorId) || normalizarNombre(v.nombre) === nombreAnterior
+      );
+      if (!yaExisteAnterior) {
+        vecinos.push({
+          ...comunidad.presidente,
+          id: anteriorId || nuevoIdLocal(),
+          esPresidente: false
+        });
+      }
+    }
+
+    if (anteriorId && mismoPresidente) indice = vecinos.findIndex(v => v.id === anteriorId);
+    if (indice < 0) indice = vecinos.findIndex(v => normalizarNombre(v.nombre) === normalizarNombre(presidente.nombre));
+    if (indice < 0 && presidente.email) indice = vecinos.findIndex(v => String(v.email || "").toLowerCase() === presidente.email.toLowerCase());
+
+    const vecinoId = indice >= 0 ? (vecinos[indice].id || nuevoIdLocal()) : nuevoIdLocal();
+    const vecinoPresidente = { ...presidente, id: vecinoId, esPresidente: true };
+    if (indice >= 0) vecinos[indice] = vecinoPresidente;
+    else vecinos.push(vecinoPresidente);
+    presidente.vecinoId = vecinoId;
 
     try {
       await updateDoc(doc(db, "comunidades", comunidadId), {
         presidente,
+        vecinos,
         modificadoPor: auth.currentUser?.email || "",
         modificadoEn: serverTimestamp()
       });
@@ -1755,6 +2083,7 @@
     const telefonoEl = document.getElementById(`vecTelefono_${comunidadId}`);
     const emailEl = document.getElementById(`vecEmail_${comunidadId}`);
     const direccionEl = document.getElementById(`vecDireccion_${comunidadId}`);
+    const ibanEl = document.getElementById(`vecIban_${comunidadId}`);
     const editEl = document.getElementById(`vecEditIndex_${comunidadId}`);
 
     const vecino = {
@@ -1762,7 +2091,8 @@
       nombre: nombreEl?.value.trim() || "",
       telefono: telefonoEl?.value.trim() || "",
       email: emailEl?.value.trim() || "",
-      direccion: direccionEl?.value.trim() || ""
+      direccion: direccionEl?.value.trim() || "",
+      iban: ibanEl?.value.trim() || ""
     };
 
     if (!vecino.nombre) return alert("Escribe el nombre del vecino o propietario.");
@@ -1770,9 +2100,12 @@
     const vecinos = Array.isArray(comunidad.vecinos) ? comunidad.vecinos.map(v => ({ ...v })) : [];
     const indice = Number(editEl?.value ?? -1);
 
+    let presidenteActualizado = comunidad.presidente && typeof comunidad.presidente === "object" ? { ...comunidad.presidente } : {};
     if (Number.isInteger(indice) && indice >= 0 && indice < vecinos.length) {
       vecino.id = vecinos[indice]?.id || vecino.id;
+      vecino.esPresidente = vecinos[indice]?.esPresidente === true;
       vecinos[indice] = vecino;
+      if (vecino.esPresidente) presidenteActualizado = { ...vecino, vecinoId: vecino.id };
     } else {
       vecinos.push(vecino);
     }
@@ -1780,6 +2113,7 @@
     try {
       await updateDoc(doc(db, "comunidades", comunidadId), {
         vecinos,
+        ...(vecino.esPresidente ? { presidente: presidenteActualizado } : {}),
         modificadoPor: auth.currentUser?.email || "",
         modificadoEn: serverTimestamp()
       });
@@ -1801,12 +2135,13 @@
     document.getElementById(`vecTelefono_${comunidadId}`).value = vecino.telefono || "";
     document.getElementById(`vecEmail_${comunidadId}`).value = vecino.email || "";
     document.getElementById(`vecDireccion_${comunidadId}`).value = vecino.direccion || "";
+    document.getElementById(`vecIban_${comunidadId}`).value = vecino.iban || "";
     document.getElementById(`vecFormTitulo_${comunidadId}`).textContent = "✏️ Editar vecino / propietario";
     document.getElementById(`vecForm_${comunidadId}`).open = true;
   };
 
   window.cancelarEdicionVecino = comunidadId => {
-    const ids = ["vecNombre", "vecTelefono", "vecEmail", "vecDireccion"];
+    const ids = ["vecNombre", "vecTelefono", "vecEmail", "vecDireccion", "vecIban"];
     ids.forEach(prefijo => {
       const el = document.getElementById(`${prefijo}_${comunidadId}`);
       if (el) el.value = "";
@@ -1821,6 +2156,7 @@
     const comunidad = comunidadPorId(comunidadId);
     const vecinos = Array.isArray(comunidad?.vecinos) ? comunidad.vecinos.map(v => ({ ...v })) : [];
     if (!vecinos[indice]) return;
+    if (vecinos[indice].esPresidente === true) return alert("Este propietario es el presidente. Para eliminarlo como vecino, primero asigna otro presidente.");
     if (!confirm(`¿Eliminar a ${vecinos[indice].nombre || "este vecino"}?`)) return;
     vecinos.splice(indice, 1);
     try {
@@ -1834,6 +2170,20 @@
       alert("No se pudo eliminar el vecino.");
     }
   };
+
+  ["movComunidad", "venComunidad", "notRealComunidad", "notRecComunidad"].forEach(id => {
+    document.getElementById(id)?.addEventListener("change", () => {
+      const mapa = {
+        movComunidad: "movPersona",
+        venComunidad: "venPersona",
+        notRealComunidad: "notRealPersona",
+        notRecComunidad: "notRecPersona"
+      };
+      rellenarSelectPersonas(mapa[id], document.getElementById(id).value, "Toda la comunidad");
+    });
+  });
+
+  document.getElementById("movFiltroComunidad")?.addEventListener("change", mostrarMovimientos);
 
   /* MOVIMIENTOS */
 
@@ -1857,6 +2207,8 @@
     const fecha = document.getElementById("movFecha").value;
     const tipo = document.getElementById("movTipo").value;
     const importe = Number(document.getElementById("movImporte").value);
+    const personaValor = document.getElementById("movPersona").value;
+    const persona = personaSeleccionada(comunidadId, personaValor);
 
     if (!comunidadId) return alert("Primero crea o selecciona una comunidad.");
     if (!fecha) return alert("Selecciona una fecha.");
@@ -1869,6 +2221,9 @@
         comunidadNombre: nombreComunidad(comunidadId),
         tipo,
         categoria: document.getElementById("movCategoria").value,
+        ambito: persona ? "Vecino" : "Comunidad",
+        vecinoId: persona ? valorPersonaSelector(persona) : "",
+        vecinoNombre: persona?.nombre || "",
         tercero: document.getElementById("movTercero").value.trim(),
         concepto: document.getElementById("movConcepto").value.trim(),
         importe,
@@ -1881,6 +2236,7 @@
       document.getElementById("movConcepto").value = "";
       document.getElementById("movImporte").value = "";
       document.getElementById("mesGlobal").value = fecha.slice(0, 7);
+      document.getElementById("desplegableNuevoMovimiento").open = false;
     } catch (error) {
       console.error(error);
       alert("No se pudo guardar el movimiento.");
@@ -1894,6 +2250,7 @@
     document.getElementById("editMovId").value = id;
     document.getElementById("editMovFecha").value = mov.fecha || "";
     document.getElementById("editMovComunidad").value = mov.comunidadId || "";
+    rellenarSelectPersonas("editMovPersona", mov.comunidadId || "", "Toda la comunidad", mov.vecinoId || "__comunidad__");
     document.getElementById("editMovTipo").value = mov.tipo || "Ingreso";
     rellenarCategorias("editMovCategoria", mov.tipo || "Ingreso", mov.categoria || "");
     rellenarEstados("editMovEstado", mov.tipo || "Ingreso", mov.estado || "");
@@ -1902,6 +2259,10 @@
     document.getElementById("editMovImporte").value = mov.importe || "";
     document.getElementById("modalMovimiento").classList.remove("oculto");
   };
+
+  document.getElementById("editMovComunidad").addEventListener("change", () => {
+    rellenarSelectPersonas("editMovPersona", document.getElementById("editMovComunidad").value, "Toda la comunidad");
+  });
 
   document.getElementById("editMovTipo").addEventListener("change", () => {
     const tipo = document.getElementById("editMovTipo").value;
@@ -1918,6 +2279,8 @@
     const fecha = document.getElementById("editMovFecha").value;
     const comunidadId = document.getElementById("editMovComunidad").value;
     const importe = Number(document.getElementById("editMovImporte").value);
+    const personaValor = document.getElementById("editMovPersona").value;
+    const persona = personaSeleccionada(comunidadId, personaValor);
 
     if (!id || !fecha || !comunidadId || !importe || importe <= 0) {
       alert("Revisa fecha, comunidad e importe.");
@@ -1931,6 +2294,9 @@
         comunidadNombre: nombreComunidad(comunidadId),
         tipo: document.getElementById("editMovTipo").value,
         categoria: document.getElementById("editMovCategoria").value,
+        ambito: persona ? "Vecino" : "Comunidad",
+        vecinoId: persona ? valorPersonaSelector(persona) : "",
+        vecinoNombre: persona?.nombre || "",
         tercero: document.getElementById("editMovTercero").value.trim(),
         concepto: document.getElementById("editMovConcepto").value.trim(),
         importe,
@@ -1957,12 +2323,88 @@
     }
   };
 
+  /* NOTIFICACIONES */
+
+  async function guardarNotificacion(tipo) {
+    const realizada = tipo === "Realizada";
+    const prefijo = realizada ? "notReal" : "notRec";
+    const comunidadId = document.getElementById(`${prefijo}Comunidad`).value;
+    const texto = document.getElementById(`${prefijo}Texto`).value.trim();
+    const personaValor = document.getElementById(`${prefijo}Persona`).value;
+    const persona = personaSeleccionada(comunidadId, personaValor);
+
+    if (!comunidadId) return alert("Selecciona una comunidad.");
+    if (!texto) return alert("Escribe la notificación o incidencia.");
+
+    const registro = {
+      id: `not_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      tipo,
+      fechaHora: new Date().toISOString(),
+      comunidadId,
+      comunidadNombre: nombreComunidad(comunidadId),
+      ambito: persona ? "Vecino" : "Comunidad",
+      vecinoId: persona ? valorPersonaSelector(persona) : "",
+      vecinoNombre: persona?.nombre || "",
+      texto,
+      creadoPor: auth.currentUser?.email || ""
+    };
+
+    try {
+      await updateDoc(doc(db, "comunidades", comunidadId), {
+        notificaciones: arrayUnion(registro),
+        modificadoPor: auth.currentUser?.email || "",
+        modificadoEn: serverTimestamp()
+      });
+      document.getElementById(`${prefijo}Texto`).value = "";
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo guardar la notificación.");
+    }
+  }
+
+  document.getElementById("guardarNotReal").addEventListener("click", () => guardarNotificacion("Realizada"));
+  document.getElementById("guardarNotRec").addEventListener("click", () => guardarNotificacion("Aviso recibido"));
+
+  function notificacionHTML(n) {
+    const destino = n.vecinoNombre ? `👤 ${esc(n.vecinoNombre)}` : "🏢 Comunidad completa";
+    return `
+      <div class="notificacion-card">
+        <div class="item-top">
+          <span>${esc(n.comunidadNombre || nombreComunidad(n.comunidadId))}</span>
+          <span class="neutro">${esc(fechaHoraBonita(n.fechaHora))}</span>
+        </div>
+        <div class="item-info">${destino}${n.creadoPor ? ` · ${esc(n.creadoPor)}` : ""}</div>
+        <div class="notificacion-texto">${esc(n.texto || "")}</div>
+      </div>
+    `;
+  }
+
+  function mostrarNotificaciones() {
+    const todas = comunidades.flatMap(com =>
+      (Array.isArray(com.notificaciones) ? com.notificaciones : []).map(n => ({
+        ...n,
+        comunidadId: n.comunidadId || com.id,
+        comunidadNombre: n.comunidadNombre || com.nombre
+      }))
+    );
+    todas.sort((a, b) => String(b.fechaHora || "").localeCompare(String(a.fechaHora || "")));
+
+    const realizadas = todas.filter(n => n.tipo === "Realizada");
+    const recibidas = todas.filter(n => n.tipo === "Aviso recibido");
+    const real = document.getElementById("listaNotReal");
+    const rec = document.getElementById("listaNotRec");
+    if (real) real.innerHTML = realizadas.length ? realizadas.map(notificacionHTML).join("") : '<div class="lista-vacia">Todavía no hay notificaciones realizadas.</div>';
+    if (rec) rec.innerHTML = recibidas.length ? recibidas.map(notificacionHTML).join("") : '<div class="lista-vacia">Todavía no hay avisos recibidos.</div>';
+  }
+
   /* VENCIMIENTOS */
 
   document.getElementById("guardarVencimiento").addEventListener("click", async () => {
     const comunidadId = document.getElementById("venComunidad").value;
     const fecha = document.getElementById("venFecha").value;
     const concepto = document.getElementById("venConcepto").value.trim();
+    const personaValor = document.getElementById("venPersona").value;
+    const persona = personaSeleccionada(comunidadId, personaValor);
 
     if (!comunidadId) return alert("Selecciona una comunidad.");
     if (!fecha) return alert("Selecciona la fecha de vencimiento.");
@@ -1973,6 +2415,9 @@
         tipo: document.getElementById("venTipo").value,
         comunidadId,
         comunidadNombre: nombreComunidad(comunidadId),
+        ambito: persona ? "Vecino" : "Comunidad",
+        vecinoId: persona ? valorPersonaSelector(persona) : "",
+        vecinoNombre: persona?.nombre || "",
         concepto,
         fechaVencimiento: fecha,
         importe: Number(document.getElementById("venImporte").value) || 0,
@@ -2018,7 +2463,7 @@
     const texto = `${venc.tipo || ""} ${venc.concepto || ""} ${venc.notas || ""}`.toLowerCase();
 
     if (tipoMovimiento === "Ingreso") {
-      if (texto.includes("cuota")) return "Cuotas propietarios";
+      if (texto.includes("cuota") || texto.includes("giro")) return "Cuotas propietarios";
       if (texto.includes("derrama")) return "Derramas";
       if (texto.includes("alquiler")) return "Alquileres";
       if (texto.includes("interes") || texto.includes("interés")) return "Intereses";
@@ -2060,7 +2505,7 @@
       return;
     }
 
-    const tipoMovimiento = venc.tipo === "Cobro" ? "Ingreso" : "Gasto";
+    const tipoMovimiento = ["Cobro", "Giro", "Cuota"].includes(venc.tipo) ? "Ingreso" : "Gasto";
     const estado = tipoMovimiento === "Ingreso" ? "Cobrado" : "Pagado";
     const accion = tipoMovimiento === "Ingreso" ? "cobro" : "pago";
     if (!confirm(`¿Registrar este ${accion} de ${euro(importe)} y completar la alerta?`)) return;
@@ -2075,7 +2520,10 @@
         comunidadNombre: venc.comunidadNombre || nombreComunidad(venc.comunidadId),
         tipo: tipoMovimiento,
         categoria: categoriaDesdeVencimiento(venc, tipoMovimiento),
-        tercero: recurrente?.tercero || contrato?.empresa || "",
+        ambito: venc.vecinoNombre ? "Vecino" : "Comunidad",
+        vecinoId: venc.vecinoId || "",
+        vecinoNombre: venc.vecinoNombre || "",
+        tercero: recurrente?.tercero || contrato?.empresa || venc.vecinoNombre || "",
         concepto: venc.concepto || venc.tipo || "Vencimiento",
         importe,
         estado,
@@ -2411,6 +2859,131 @@
     }
   };
 
+  /* BALANCES DE COMUNIDAD */
+
+  function acumularCategoria(lista) {
+    const mapa = {};
+    lista.forEach(m => {
+      const clave = m.categoria || "Otros";
+      mapa[clave] = (mapa[clave] || 0) + Number(m.importe || 0);
+    });
+    return Object.entries(mapa)
+      .map(([categoria, total]) => ({ categoria, total }))
+      .sort((a, b) => b.total - a.total);
+  }
+
+  function calcularBalanceComunidad(comunidadId) {
+    const movs = movimientos.filter(m => m.comunidadId === comunidadId);
+    const ingresos = movs.filter(m => m.tipo === "Ingreso" && m.estado === "Cobrado");
+    const gastos = movs.filter(m => m.tipo === "Gasto" && m.estado === "Pagado");
+    const pendientesCobro = movs.filter(m => m.tipo === "Ingreso" && m.estado === "Pendiente");
+    const pendientesPagoMov = movs.filter(m => m.tipo === "Gasto" && m.estado === "Pendiente");
+    const factPend = facturas.filter(f => f.comunidadId === comunidadId && f.estado !== "Pagada");
+
+    const totalIngresos = ingresos.reduce((s, m) => s + Number(m.importe || 0), 0);
+    const totalGastos = gastos.reduce((s, m) => s + Number(m.importe || 0), 0);
+    const totalPendCobro = pendientesCobro.reduce((s, m) => s + Number(m.importe || 0), 0);
+    const totalPendPago = pendientesPagoMov.reduce((s, m) => s + Number(m.importe || 0), 0)
+      + factPend.reduce((s, f) => s + Number(f.total || 0), 0);
+
+    const mesesMap = {};
+    movs.forEach(m => {
+      const mes = String(m.fecha || "").slice(0, 7);
+      if (!/^\d{4}-\d{2}$/.test(mes)) return;
+      if (!mesesMap[mes]) mesesMap[mes] = { mes, ingresos: 0, gastos: 0, pendienteCobro: 0, pendientePago: 0 };
+      const importe = Number(m.importe || 0);
+      if (m.tipo === "Ingreso" && m.estado === "Cobrado") mesesMap[mes].ingresos += importe;
+      if (m.tipo === "Gasto" && m.estado === "Pagado") mesesMap[mes].gastos += importe;
+      if (m.tipo === "Ingreso" && m.estado === "Pendiente") mesesMap[mes].pendienteCobro += importe;
+      if (m.tipo === "Gasto" && m.estado === "Pendiente") mesesMap[mes].pendientePago += importe;
+    });
+
+    const meses = Object.values(mesesMap)
+      .map(x => ({ ...x, saldo: x.ingresos - x.gastos }))
+      .sort((a, b) => String(b.mes).localeCompare(String(a.mes)));
+
+    return {
+      id: `bal_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      fechaHora: new Date().toISOString(),
+      creadoPor: auth.currentUser?.email || "",
+      totalIngresos,
+      totalGastos,
+      saldo: totalIngresos - totalGastos,
+      pendienteCobro: totalPendCobro,
+      pendientePago: totalPendPago,
+      categoriasIngreso: acumularCategoria(ingresos),
+      categoriasGasto: acumularCategoria(gastos),
+      meses
+    };
+  }
+
+  function balanceHTML(balance, nombre = "") {
+    const catIngresos = Array.isArray(balance.categoriasIngreso) ? balance.categoriasIngreso : [];
+    const catGastos = Array.isArray(balance.categoriasGasto) ? balance.categoriasGasto : [];
+    const meses = Array.isArray(balance.meses) ? balance.meses : [];
+    return `
+      ${nombre ? `<h3>${esc(nombre)}</h3>` : ""}
+      <div class="item-info">Balance realizado: ${esc(fechaHoraBonita(balance.fechaHora))}${balance.creadoPor ? ` · ${esc(balance.creadoPor)}` : ""}</div>
+      <div class="balance-resumen">
+        <div><small>Ingresos cobrados</small><strong class="positivo">${euroMas(balance.totalIngresos)}</strong></div>
+        <div><small>Gastos pagados</small><strong class="negativo">${euroMenos(balance.totalGastos)}</strong></div>
+        <div><small>Saldo</small><strong class="${Number(balance.saldo || 0) >= 0 ? "positivo" : "negativo"}">${Number(balance.saldo || 0) >= 0 ? euroMas(balance.saldo) : "-" + euro(Math.abs(Number(balance.saldo || 0)))}</strong></div>
+        <div><small>Pendiente cobro</small><strong class="pendiente">${euro(balance.pendienteCobro)}</strong></div>
+        <div><small>Pendiente pago</small><strong class="pendiente">${euro(balance.pendientePago)}</strong></div>
+      </div>
+
+      <h4>Ingresos por tipo</h4>
+      ${catIngresos.length ? catIngresos.map(x => `<div class="balance-linea"><strong>${esc(x.categoria)}</strong><span style="float:right" class="positivo">${euroMas(x.total)}</span></div>`).join("") : '<div class="texto-ayuda">Sin ingresos cobrados.</div>'}
+
+      <h4>Gastos por tipo</h4>
+      ${catGastos.length ? catGastos.map(x => `<div class="balance-linea"><strong>${esc(x.categoria)}</strong><span style="float:right" class="negativo">${euroMenos(x.total)}</span></div>`).join("") : '<div class="texto-ayuda">Sin gastos pagados.</div>'}
+
+      <h4>Balance por mes</h4>
+      ${meses.length ? meses.map(x => `
+        <div class="balance-linea">
+          <strong>${esc(x.mes)}</strong><br>
+          <span class="positivo">Ingresos ${euroMas(x.ingresos)}</span> ·
+          <span class="negativo">Gastos ${euroMenos(x.gastos)}</span> ·
+          <span class="${Number(x.saldo || 0) >= 0 ? "positivo" : "negativo"}">Saldo ${Number(x.saldo || 0) >= 0 ? euroMas(x.saldo) : "-" + euro(Math.abs(Number(x.saldo || 0)))}</span>
+          ${(Number(x.pendienteCobro || 0) || Number(x.pendientePago || 0)) ? `<br><span class="pendiente">Pend. cobro ${euro(x.pendienteCobro)} · Pend. pago ${euro(x.pendientePago)}</span>` : ""}
+        </div>
+      `).join("") : '<div class="texto-ayuda">No hay movimientos mensuales.</div>'}
+    `;
+  }
+
+  function abrirBalance(balance, comunidad) {
+    document.getElementById("contenidoBalance").innerHTML = balanceHTML(balance, comunidad?.nombre || "");
+    document.getElementById("modalBalance").classList.remove("oculto");
+  }
+
+  document.getElementById("cerrarBalance").addEventListener("click", () => {
+    document.getElementById("modalBalance").classList.add("oculto");
+  });
+
+  window.generarBalanceComunidad = async comunidadId => {
+    const comunidad = comunidadPorId(comunidadId);
+    if (!comunidad) return;
+    const balance = calcularBalanceComunidad(comunidadId);
+    try {
+      await updateDoc(doc(db, "comunidades", comunidadId), {
+        balances: arrayUnion(balance),
+        modificadoPor: auth.currentUser?.email || "",
+        modificadoEn: serverTimestamp()
+      });
+      abrirBalance(balance, comunidad);
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo guardar el balance de la comunidad.");
+    }
+  };
+
+  window.verBalanceHistorico = (comunidadId, balanceId) => {
+    const comunidad = comunidadPorId(comunidadId);
+    const balance = (Array.isArray(comunidad?.balances) ? comunidad.balances : []).find(b => b.id === balanceId);
+    if (!balance) return alert("No se encontró este balance histórico.");
+    abrirBalance(balance, comunidad);
+  };
+
   /* RENDER GENERAL */
 
   document.getElementById("mesGlobal").addEventListener("change", actualizarTodo);
@@ -2419,6 +2992,7 @@
     mostrarAlertasInicio();
     mostrarComunidades();
     mostrarMovimientos();
+    mostrarNotificaciones();
     mostrarVencimientos();
     mostrarRecurrentes();
     mostrarFacturas();
@@ -2611,6 +3185,8 @@
 
         const presidente = com.presidente && typeof com.presidente === "object" ? com.presidente : {};
         const vecinos = Array.isArray(com.vecinos) ? com.vecinos : [];
+        const vecinosListado = vecinosVisibles(com);
+        const balances = Array.isArray(com.balances) ? [...com.balances].sort((a, b) => String(b.fechaHora || "").localeCompare(String(a.fechaHora || ""))) : [];
 
         interior.innerHTML = `
           <div class="item-info">
@@ -2625,7 +3201,20 @@
               ? `<button type="button" class="btn-mini btn-desactivar" onclick="cambiarEstadoComunidad('${com.id}', false)">⏸️ Desactivar comunidad</button>`
               : `<button type="button" class="btn-mini btn-reactivar" onclick="cambiarEstadoComunidad('${com.id}', true)">▶️ Reactivar comunidad</button>`
             }
+            <button type="button" class="btn-mini btn-balance" onclick="generarBalanceComunidad('${com.id}')">📊 Balance comunidad</button>
           </div>
+
+          <details class="balance-historial">
+            <summary><span><span class="flecha">▶</span> 📚 Histórico de balances</span><span>${balances.length}</span></summary>
+            <div class="grupo-interior">
+              ${balances.length ? balances.map(b => `
+                <div class="item">
+                  <div class="item-top"><span>${esc(fechaHoraBonita(b.fechaHora))}</span><span class="${Number(b.saldo || 0) >= 0 ? "positivo" : "negativo"}">${Number(b.saldo || 0) >= 0 ? euroMas(b.saldo) : "-" + euro(Math.abs(Number(b.saldo || 0)))}</span></div>
+                  <div class="acciones"><button type="button" class="btn-mini btn-editar" onclick="verBalanceHistorico('${com.id}','${b.id}')">Ver balance</button></div>
+                </div>
+              `).join("") : '<div class="texto-ayuda">Todavía no se ha realizado ningún balance.</div>'}
+            </div>
+          </details>
 
           <div class="mini-resumen">
             <button type="button" class="resumen-btn" onclick="mostrarDetalleComunidad('${com.id}','ingresos')"><small>Ingresos</small><strong class="positivo">${euroMas(ingresos)}</strong></button>
@@ -2653,18 +3242,24 @@
                 </div>
                 <label>Dirección</label>
                 <input id="presDireccion_${com.id}" type="text" value="${esc(presidente.direccion || "")}" placeholder="Dirección del presidente">
+                <label>IBAN</label>
+                <input id="presIban_${com.id}" type="text" value="${esc(presidente.iban || "")}" placeholder="IBAN del presidente">
                 <button type="button" class="btn-principal" onclick="guardarPresidente('${com.id}')">Guardar presidente</button>
               </div>
             </details>
 
-            <h4 class="contacto-titulo">👥 Vecinos / propietarios (${vecinos.length})</h4>
+            <h4 class="contacto-titulo">👥 Vecinos / propietarios (${vecinosListado.length})</h4>
             <div>
-              ${vecinos.length ? vecinos.map((v, indice) => `
+              ${vecinosListado.length ? vecinosListado.map(v => `
                 <div class="contacto-card">
                   ${personaContactoHTML(v)}
+                  ${v.esPresidente ? '<span class="badge badge-presidente">Presidente</span>' : ""}
                   <div class="acciones">
-                    <button type="button" class="btn-mini btn-editar" onclick="editarVecino('${com.id}',${indice})">✏️ Editar</button>
-                    <button type="button" class="btn-mini btn-borrar" onclick="borrarVecino('${com.id}',${indice})">Eliminar</button>
+                    ${v.__presidenteVirtual
+                      ? '<span class="texto-ayuda">Edita estos datos desde la ficha de Presidente.</span>'
+                      : `<button type="button" class="btn-mini btn-editar" onclick="editarVecino('${com.id}',${v.__indiceOriginal})">✏️ Editar</button>
+                         <button type="button" class="btn-mini btn-borrar" onclick="borrarVecino('${com.id}',${v.__indiceOriginal})">Eliminar</button>`
+                    }
                   </div>
                 </div>
               `).join("") : '<div class="texto-ayuda">Todavía no hay vecinos o propietarios registrados.</div>'}
@@ -2682,6 +3277,8 @@
                 </div>
                 <label>Dirección</label>
                 <input id="vecDireccion_${com.id}" type="text" placeholder="Dirección del vecino / propietario">
+                <label>IBAN</label>
+                <input id="vecIban_${com.id}" type="text" placeholder="IBAN del vecino / propietario">
                 <div class="botones-modal">
                   <button type="button" class="btn-principal" style="margin:0" onclick="guardarVecino('${com.id}')">Guardar</button>
                   <button type="button" class="btn-secundario" onclick="cancelarEdicionVecino('${com.id}')">Limpiar</button>
@@ -2739,7 +3336,10 @@
 
   function mostrarMovimientos() {
     const contenedor = document.getElementById("listaMovimientos");
-    const todos = [...movimientosDelMes()].sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
+    const comunidadFiltro = document.getElementById("movFiltroComunidad")?.value || "__todas__";
+    const todos = [...movimientosDelMes()]
+      .filter(m => comunidadFiltro === "__todas__" || m.comunidadId === comunidadFiltro)
+      .sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
     contenedor.innerHTML = "";
 
     document.querySelectorAll(".filtro-mov").forEach(btn => {
@@ -2803,12 +3403,13 @@
         </div>
         <div class="item-info">
           ${esc(nombreComunidad(v.comunidadId))} · ${esc(v.tipo || "")} · ${fechaBonita(v.fechaVencimiento)}<br>
+          ${v.vecinoNombre ? `👤 ${esc(v.vecinoNombre)}<br>` : ""}
           <span class="badge ${clase}">${etiqueta}</span>
           ${Number(v.avisarDias || 0) > 0 ? `<span class="badge">Aviso ${esc(v.avisarDias)} días</span>` : ""}
           ${v.notas ? `<br>${esc(v.notas)}` : ""}
         </div>
         <div class="acciones">
-          ${Number(v.importe || 0) > 0 ? `<button class="btn-mini btn-pago" onclick="registrarMovimientoVencimiento('${v.id}')">💶 ${v.tipo === "Cobro" ? "Registrar cobro" : "Registrar pago"}</button>` : ""}
+          ${Number(v.importe || 0) > 0 ? `<button class="btn-mini btn-pago" onclick="registrarMovimientoVencimiento('${v.id}')">💶 ${["Cobro", "Giro", "Cuota"].includes(v.tipo) ? "Registrar cobro" : "Registrar pago"}</button>` : ""}
           <button class="btn-mini btn-ok" onclick="completarVencimiento('${v.id}')">✓ Completar sin pago</button>
           <button class="btn-mini btn-borrar" onclick="borrarVencimiento('${v.id}')">Eliminar</button>
         </div>
