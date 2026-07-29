@@ -50,6 +50,15 @@
       opacity: .9;
     }
 
+    .marca-desarrollador {
+      margin: 5px 0 0;
+      opacity: .82;
+      font-size: clamp(9px, 2.7vw, 12px);
+      font-weight: 500;
+      white-space: nowrap;
+      text-align: center;
+    }
+
     .container {
       max-width: 850px;
       margin: auto;
@@ -755,8 +764,9 @@
 <body>
 
 <header>
-  <h1>🏢 Gestión de fincas</h1>
+  <h1>🏢 ARCAX · Gestión de fincas</h1>
   <p>Comunidades · contabilidad · vencimientos</p>
+  <div class="marca-desarrollador">Software de gestión desarrollado por Travesa Solutions</div>
 </header>
 
 <div class="container">
@@ -1305,13 +1315,18 @@
   <div class="modal">
     <h2>📊 Balance de comunidad</h2>
     <div id="contenidoBalance"></div>
-    <button id="cerrarBalance" class="btn-secundario" style="margin-top:16px;">Cerrar</button>
+    <div class="acciones" style="margin-top:16px;">
+      <button id="descargarBalanceAbierto" class="btn-mini btn-ok" type="button">📄 Descargar PDF</button>
+      <button id="cerrarBalance" class="btn-mini btn-secundario" type="button">Cerrar</button>
+    </div>
   </div>
 </div>
 
 <footer>
   Gestión de fincas · Datos compartidos y guardados en Firebase
 </footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
@@ -2951,13 +2966,156 @@
     `;
   }
 
+  let balanceAbierto = null;
+
   function abrirBalance(balance, comunidad) {
+    balanceAbierto = { balance, comunidad };
     document.getElementById("contenidoBalance").innerHTML = balanceHTML(balance, comunidad?.nombre || "");
     document.getElementById("modalBalance").classList.remove("oculto");
   }
 
+  function nombreArchivoSeguro(valor) {
+    return String(valor || "balance")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9_-]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 80) || "balance";
+  }
+
+  function descargarPDFBalance(balance, comunidad) {
+    const JsPDF = window.jspdf?.jsPDF;
+    if (!JsPDF) {
+      alert("No se pudo cargar el generador de PDF. Comprueba la conexión a Internet y vuelve a intentarlo.");
+      return;
+    }
+
+    const docPdf = new JsPDF({ unit: "mm", format: "a4" });
+    const margenX = 16;
+    const anchoUtil = 210 - (margenX * 2);
+    const limiteY = 278;
+    let y = 18;
+
+    const nuevaPaginaSiHaceFalta = (alto = 8) => {
+      if (y + alto > limiteY) {
+        docPdf.addPage();
+        y = 18;
+      }
+    };
+
+    const texto = (valor, opciones = {}) => {
+      const { tam = 10, negrita = false, sangria = 0, espacio = 5 } = opciones;
+      docPdf.setFont("helvetica", negrita ? "bold" : "normal");
+      docPdf.setFontSize(tam);
+      const lineas = docPdf.splitTextToSize(String(valor ?? ""), anchoUtil - sangria);
+      nuevaPaginaSiHaceFalta(Math.max(7, lineas.length * espacio));
+      docPdf.text(lineas, margenX + sangria, y);
+      y += Math.max(espacio, lineas.length * espacio);
+    };
+
+    const separador = () => {
+      nuevaPaginaSiHaceFalta(5);
+      docPdf.setDrawColor(210);
+      docPdf.line(margenX, y, 210 - margenX, y);
+      y += 5;
+    };
+
+    const lineaImporte = (etiqueta, importe, signo = "") => {
+      nuevaPaginaSiHaceFalta(7);
+      docPdf.setFont("helvetica", "normal");
+      docPdf.setFontSize(10);
+      docPdf.text(String(etiqueta), margenX, y);
+      const valor = `${signo}${euro(Math.abs(Number(importe || 0)))}`;
+      docPdf.text(valor, 210 - margenX, y, { align: "right" });
+      y += 6;
+    };
+
+    const nombre = comunidad?.nombre || "Comunidad";
+    docPdf.setProperties({
+      title: `Balance - ${nombre}`,
+      subject: "Balance de comunidad",
+      author: balance.creadoPor || "Gestión de fincas",
+      creator: "Gestión de fincas"
+    });
+
+    texto("GESTIÓN DE FINCAS", { tam: 10, negrita: true, espacio: 5 });
+    texto("BALANCE DE COMUNIDAD", { tam: 18, negrita: true, espacio: 8 });
+    texto(nombre, { tam: 14, negrita: true, espacio: 7 });
+    if (comunidad?.direccion) texto(`Dirección: ${comunidad.direccion}`, { tam: 9, espacio: 5 });
+    if (comunidad?.cif) texto(`CIF: ${comunidad.cif}`, { tam: 9, espacio: 5 });
+    texto(`Balance realizado: ${fechaHoraBonita(balance.fechaHora)}`, { tam: 9, espacio: 5 });
+    if (balance.creadoPor) texto(`Realizado por: ${balance.creadoPor}`, { tam: 9, espacio: 5 });
+    separador();
+
+    texto("RESUMEN", { tam: 12, negrita: true, espacio: 7 });
+    lineaImporte("Ingresos cobrados", balance.totalIngresos, "+");
+    lineaImporte("Gastos pagados", balance.totalGastos, "-");
+    lineaImporte("Saldo", balance.saldo, Number(balance.saldo || 0) >= 0 ? "+" : "-");
+    lineaImporte("Pendiente de cobro", balance.pendienteCobro);
+    lineaImporte("Pendiente de pago", balance.pendientePago);
+    separador();
+
+    texto("INGRESOS POR TIPO", { tam: 12, negrita: true, espacio: 7 });
+    const catIngresos = Array.isArray(balance.categoriasIngreso) ? balance.categoriasIngreso : [];
+    if (catIngresos.length) catIngresos.forEach(x => lineaImporte(x.categoria || "Otros", x.total, "+"));
+    else texto("Sin ingresos cobrados.", { tam: 9 });
+    separador();
+
+    texto("GASTOS POR TIPO", { tam: 12, negrita: true, espacio: 7 });
+    const catGastos = Array.isArray(balance.categoriasGasto) ? balance.categoriasGasto : [];
+    if (catGastos.length) catGastos.forEach(x => lineaImporte(x.categoria || "Otros", x.total, "-"));
+    else texto("Sin gastos pagados.", { tam: 9 });
+    separador();
+
+    texto("BALANCE POR MES", { tam: 12, negrita: true, espacio: 7 });
+    const meses = Array.isArray(balance.meses) ? balance.meses : [];
+    if (!meses.length) {
+      texto("No hay movimientos mensuales.", { tam: 9 });
+    } else {
+      meses.forEach(mes => {
+        nuevaPaginaSiHaceFalta(28);
+        texto(String(mes.mes || "Mes"), { tam: 10, negrita: true, espacio: 6 });
+        lineaImporte("  Ingresos", mes.ingresos, "+");
+        lineaImporte("  Gastos", mes.gastos, "-");
+        lineaImporte("  Saldo", mes.saldo, Number(mes.saldo || 0) >= 0 ? "+" : "-");
+        if (Number(mes.pendienteCobro || 0) || Number(mes.pendientePago || 0)) {
+          lineaImporte("  Pendiente de cobro", mes.pendienteCobro);
+          lineaImporte("  Pendiente de pago", mes.pendientePago);
+        }
+        y += 2;
+      });
+    }
+
+    const totalPaginas = docPdf.getNumberOfPages();
+    for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+      docPdf.setPage(pagina);
+      docPdf.setFont("helvetica", "normal");
+      docPdf.setFontSize(8);
+      docPdf.setTextColor(120);
+      docPdf.text(`Página ${pagina} de ${totalPaginas}`, 210 - margenX, 291, { align: "right" });
+      docPdf.text("Gestión de fincas", margenX, 291);
+      docPdf.setTextColor(0);
+    }
+
+    const fechaArchivo = String(balance.fechaHora || hoyISO()).slice(0, 10);
+    docPdf.save(`Balance_${nombreArchivoSeguro(nombre)}_${fechaArchivo}.pdf`);
+  }
+
+  window.descargarBalancePDF = (comunidadId, balanceId) => {
+    const comunidad = comunidadPorId(comunidadId);
+    const balance = (Array.isArray(comunidad?.balances) ? comunidad.balances : []).find(b => b.id === balanceId);
+    if (!balance) return alert("No se encontró este balance histórico.");
+    descargarPDFBalance(balance, comunidad);
+  };
+
+  document.getElementById("descargarBalanceAbierto").addEventListener("click", () => {
+    if (!balanceAbierto?.balance) return;
+    descargarPDFBalance(balanceAbierto.balance, balanceAbierto.comunidad);
+  });
+
   document.getElementById("cerrarBalance").addEventListener("click", () => {
     document.getElementById("modalBalance").classList.add("oculto");
+    balanceAbierto = null;
   });
 
   window.generarBalanceComunidad = async comunidadId => {
@@ -3210,7 +3368,10 @@
               ${balances.length ? balances.map(b => `
                 <div class="item">
                   <div class="item-top"><span>${esc(fechaHoraBonita(b.fechaHora))}</span><span class="${Number(b.saldo || 0) >= 0 ? "positivo" : "negativo"}">${Number(b.saldo || 0) >= 0 ? euroMas(b.saldo) : "-" + euro(Math.abs(Number(b.saldo || 0)))}</span></div>
-                  <div class="acciones"><button type="button" class="btn-mini btn-editar" onclick="verBalanceHistorico('${com.id}','${b.id}')">Ver balance</button></div>
+                  <div class="acciones">
+                    <button type="button" class="btn-mini btn-editar" onclick="verBalanceHistorico('${com.id}','${b.id}')">Ver balance</button>
+                    <button type="button" class="btn-mini btn-ok" onclick="descargarBalancePDF('${com.id}','${b.id}')">📄 Descargar PDF</button>
+                  </div>
                 </div>
               `).join("") : '<div class="texto-ayuda">Todavía no se ha realizado ningún balance.</div>'}
             </div>
