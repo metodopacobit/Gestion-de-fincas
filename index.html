@@ -1819,7 +1819,7 @@
         </div>
         <div class="item-info">
           ${fechaBonita(m.fecha)}${mostrarComunidad ? ` · ${esc(nombreComunidad(m.comunidadId))}` : ""} · ${esc(m.categoria || "")}<br>
-           ${m.vecinoNombre ? `👤 ${esc(m.vecinoNombre)} · ` : (m.ambito === "Comunidad" ? "🏢 Comunidad completa · " : "")}${m.tercero ? `${esc(m.tercero)} · ` : ""}<span class="badge ${pendiente ? "badge-amarillo" : "badge-verde"}">${esc(estadoVisibleMovimiento(m))}</span>
+          ${m.vecinoNombre ? `👤 ${esc(m.vecinoNombre)} · ` : (m.ambito === "Comunidad" ? "🏢 Comunidad completa · " : "")}${m.tercero ? `${esc(m.tercero)} · ` : ""}<span class="badge ${pendiente ? "badge-amarillo" : "badge-verde"}">${esc(estadoVisibleMovimiento(m))}</span>
         </div>
         ${opciones.sinAcciones ? "" : `
           <div class="acciones">
@@ -2018,7 +2018,7 @@
   document.getElementById("botonSalirEntrada").addEventListener("click", cerrarSesion);
   document.getElementById("botonSalirMT").addEventListener("click", cerrarSesion);
   document.getElementById("abrirArcax").addEventListener("click", entrarArcax);
-  document.getElementById("abrirMT").addEventListener("click", entrarMT);
+  document.getElementById("abrirMT").addEventListener("click", () => { window.location.href = "mt-formacion/"; });
   document.getElementById("volverEmpresasArcax").addEventListener("click", mostrarSelectorEmpresas);
   document.getElementById("volverEmpresasMT").addEventListener("click", mostrarSelectorEmpresas);
 
