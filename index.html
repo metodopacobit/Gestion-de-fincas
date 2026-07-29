@@ -50,15 +50,6 @@
       opacity: .9;
     }
 
-    .marca-desarrollador {
-      margin: 5px 0 0;
-      opacity: .82;
-      font-size: clamp(9px, 2.7vw, 12px);
-      font-weight: 500;
-      white-space: nowrap;
-      text-align: center;
-    }
-
     .container {
       max-width: 850px;
       margin: auto;
@@ -764,9 +755,8 @@
 <body>
 
 <header>
-  <h1>🏢 ARCAX · Gestión de fincas</h1>
+  <h1>🏢 Gestión de fincas</h1>
   <p>Comunidades · contabilidad · vencimientos</p>
-  <div class="marca-desarrollador">Software de gestión desarrollado por Travesa Solutions</div>
 </header>
 
 <div class="container">
@@ -844,76 +834,16 @@
       </div>
     </details>
 
-    <!-- MOVIMIENTOS -->
+    <!-- MOVIMIENTOS DEL MES -->
     <details class="seccion">
       <summary>
-        <span>💰 Ingresos y pagos</span>
+        <span>💰 Movimientos del mes</span>
         <span class="flecha">▶</span>
       </summary>
       <div class="contenido-seccion">
 
-        <details id="desplegableNuevoMovimiento" class="form-desplegable">
-          <summary>
-            <span>➕ Nuevo movimiento</span>
-            <span class="flecha">▶</span>
-          </summary>
-          <div class="form-desplegable-interior">
-            <div class="fila-form">
-              <div>
-                <label>Comunidad</label>
-                <select id="movComunidad"></select>
-              </div>
-              <div>
-                <label>Fecha</label>
-                <input id="movFecha" type="date">
-              </div>
-            </div>
-
-            <label>Propietario / ámbito</label>
-            <select id="movPersona"></select>
-            <div class="texto-ayuda">Puedes registrar el movimiento para toda la comunidad o vincularlo a un propietario concreto.</div>
-
-            <div class="fila-form">
-              <div>
-                <label>Tipo</label>
-                <select id="movTipo">
-                  <option value="Ingreso">Ingreso</option>
-                  <option value="Gasto">Gasto</option>
-                </select>
-              </div>
-              <div>
-                <label>Categoría</label>
-                <select id="movCategoria"></select>
-              </div>
-            </div>
-
-            <label>Proveedor / tercero (opcional)</label>
-            <input id="movTercero" type="text" placeholder="Ej. Mapfre, Otis...">
-
-            <label>Concepto</label>
-            <input id="movConcepto" type="text" placeholder="Ej. Seguro anual, cuota julio...">
-
-            <div class="fila-form">
-              <div>
-                <label>Importe (€)</label>
-                <input id="movImporte" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
-              </div>
-              <div>
-                <label>Estado</label>
-                <select id="movEstado"></select>
-                <div id="movEstadoAyuda" class="estado-explicacion">Solo lo cobrado o pagado computa en los totales.</div>
-              </div>
-            </div>
-
-            <button id="guardarMovimiento" class="btn-principal">Guardar movimiento</button>
-          </div>
-        </details>
-
-        <hr class="separador">
-
-        <h3 class="subtitulo">Movimientos del mes</h3>
         <div class="selector-vista">
-          <label>Ver ingresos y pagos de</label>
+          <label>Ver movimientos de</label>
           <select id="movFiltroComunidad"></select>
         </div>
         <div class="filtros-movimientos" aria-label="Filtrar movimientos por estado">
@@ -1647,7 +1577,6 @@
 
   function actualizarSelectoresPersonas() {
     const pares = [
-      ["movPersona", "movComunidad", "Toda la comunidad"],
       ["venPersona", "venComunidad", "Toda la comunidad"],
       ["notRealPersona", "notRealComunidad", "Toda la comunidad"],
       ["notRecPersona", "notRecComunidad", "Toda la comunidad"]
@@ -1713,7 +1642,6 @@
 
   function rellenarSelectComunidades() {
     const idsNuevos = [
-      "movComunidad",
       "venComunidad",
       "recComunidad",
       "facComunidad",
@@ -1794,7 +1722,6 @@
   }
 
   document.getElementById("mesGlobal").value = mesActual();
-  document.getElementById("movFecha").value = hoyISO();
   document.getElementById("venFecha").value = hoyISO();
   document.getElementById("recProximaFecha").value = hoyISO();
   document.getElementById("facFecha").value = hoyISO();
@@ -1802,8 +1729,6 @@
   document.getElementById("conInicio").value = hoyISO();
   document.getElementById("conVencimiento").value = hoyISO();
 
-  rellenarCategorias("movCategoria", "Ingreso");
-  rellenarEstados("movEstado", "Ingreso");
   rellenarCategorias("editMovCategoria", "Ingreso");
   rellenarEstados("editMovEstado", "Ingreso");
   rellenarCategorias("facCategoria", "Gasto");
@@ -2186,10 +2111,9 @@
     }
   };
 
-  ["movComunidad", "venComunidad", "notRealComunidad", "notRecComunidad"].forEach(id => {
+  ["venComunidad", "notRealComunidad", "notRecComunidad"].forEach(id => {
     document.getElementById(id)?.addEventListener("change", () => {
       const mapa = {
-        movComunidad: "movPersona",
         venComunidad: "venPersona",
         notRealComunidad: "notRealPersona",
         notRecComunidad: "notRecPersona"
@@ -2202,30 +2126,104 @@
 
   /* MOVIMIENTOS */
 
-  document.getElementById("movTipo").addEventListener("change", () => {
-    const tipo = document.getElementById("movTipo").value;
-    rellenarCategorias("movCategoria", tipo);
-    rellenarEstados("movEstado", tipo);
-  });
+  function opcionesCategoriasMovimientoHTML(tipo) {
+    const lista = tipo === "Ingreso" ? categoriasIngreso : categoriasGasto;
+    return lista.map(cat => `<option value="${esc(cat)}">${esc(cat)}</option>`).join("");
+  }
 
+  function opcionesEstadosMovimientoHTML(tipo) {
+    const lista = tipo === "Ingreso"
+      ? [
+          { valor: "Cobrado", texto: "Cobrado" },
+          { valor: "Pendiente", texto: "Pendiente de cobro" }
+        ]
+      : [
+          { valor: "Pagado", texto: "Pagado" },
+          { valor: "Pendiente", texto: "Pendiente de pago" }
+        ];
+    return lista.map(estado => `<option value="${estado.valor}">${estado.texto}</option>`).join("");
+  }
 
-  window.cambiarFiltroMovimientos = filtro => {
-    filtroMovimientos = filtro;
-    document.querySelectorAll(".filtro-mov").forEach(btn => {
-      btn.classList.toggle("activo", btn.dataset.filtro === filtro);
+  function opcionesPersonasMovimientoHTML(comunidad) {
+    const opciones = ['<option value="__comunidad__">Toda la comunidad</option>'];
+    vecinosVisibles(comunidad).forEach(persona => {
+      opciones.push(`<option value="${esc(valorPersonaSelector(persona))}">${esc(persona.nombre || "Propietario sin nombre")}${persona.esPresidente ? " · Presidente" : ""}</option>`);
     });
-    mostrarMovimientos();
+    return opciones.join("");
+  }
+
+  function formularioNuevoMovimientoComunidadHTML(comunidad) {
+    return `
+      <details id="movForm_${comunidad.id}" class="form-desplegable movimiento-comunidad-form">
+        <summary>
+          <span>➕ Nuevo movimiento</span>
+          <span class="flecha">▶</span>
+        </summary>
+        <div class="form-desplegable-interior">
+          <label>Fecha</label>
+          <input id="movComFecha_${comunidad.id}" type="date" value="${hoyISO()}">
+
+          <label>Propietario / ámbito</label>
+          <select id="movComPersona_${comunidad.id}">${opcionesPersonasMovimientoHTML(comunidad)}</select>
+          <div class="texto-ayuda">Puedes registrar el movimiento para toda la comunidad o vincularlo a un propietario concreto.</div>
+
+          <div class="fila-form">
+            <div>
+              <label>Tipo</label>
+              <select id="movComTipo_${comunidad.id}" onchange="actualizarFormularioMovimientoComunidad('${comunidad.id}')">
+                <option value="Ingreso">Ingreso</option>
+                <option value="Gasto">Gasto</option>
+              </select>
+            </div>
+            <div>
+              <label>Categoría</label>
+              <select id="movComCategoria_${comunidad.id}">${opcionesCategoriasMovimientoHTML("Ingreso")}</select>
+            </div>
+          </div>
+
+          <label>Proveedor / tercero (opcional)</label>
+          <input id="movComTercero_${comunidad.id}" type="text" placeholder="Ej. Mapfre, Otis...">
+
+          <label>Concepto</label>
+          <input id="movComConcepto_${comunidad.id}" type="text" placeholder="Ej. Seguro anual, cuota julio...">
+
+          <div class="fila-form">
+            <div>
+              <label>Importe (€)</label>
+              <input id="movComImporte_${comunidad.id}" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+            </div>
+            <div>
+              <label>Estado</label>
+              <select id="movComEstado_${comunidad.id}">${opcionesEstadosMovimientoHTML("Ingreso")}</select>
+              <div class="estado-explicacion">Solo lo cobrado o pagado computa en los totales.</div>
+            </div>
+          </div>
+
+          <button type="button" class="btn-principal" onclick="guardarMovimientoComunidad('${comunidad.id}')">Guardar movimiento</button>
+        </div>
+      </details>
+    `;
+  }
+
+  window.actualizarFormularioMovimientoComunidad = comunidadId => {
+    const tipo = document.getElementById(`movComTipo_${comunidadId}`)?.value || "Ingreso";
+    const categoria = document.getElementById(`movComCategoria_${comunidadId}`);
+    const estado = document.getElementById(`movComEstado_${comunidadId}`);
+    if (categoria) categoria.innerHTML = opcionesCategoriasMovimientoHTML(tipo);
+    if (estado) estado.innerHTML = opcionesEstadosMovimientoHTML(tipo);
   };
 
-  document.getElementById("guardarMovimiento").addEventListener("click", async () => {
-    const comunidadId = document.getElementById("movComunidad").value;
-    const fecha = document.getElementById("movFecha").value;
-    const tipo = document.getElementById("movTipo").value;
-    const importe = Number(document.getElementById("movImporte").value);
-    const personaValor = document.getElementById("movPersona").value;
+  window.guardarMovimientoComunidad = async comunidadId => {
+    const comunidad = comunidadPorId(comunidadId);
+    if (!comunidad) return alert("No se encontró la comunidad.");
+    if (!esComunidadActiva(comunidad)) return alert("Esta comunidad está inactiva. Reactívala antes de registrar nuevos movimientos.");
+
+    const fecha = document.getElementById(`movComFecha_${comunidadId}`)?.value || "";
+    const tipo = document.getElementById(`movComTipo_${comunidadId}`)?.value || "Ingreso";
+    const importe = Number(document.getElementById(`movComImporte_${comunidadId}`)?.value || 0);
+    const personaValor = document.getElementById(`movComPersona_${comunidadId}`)?.value || "__comunidad__";
     const persona = personaSeleccionada(comunidadId, personaValor);
 
-    if (!comunidadId) return alert("Primero crea o selecciona una comunidad.");
     if (!fecha) return alert("Selecciona una fecha.");
     if (!importe || importe <= 0) return alert("Introduce un importe válido.");
 
@@ -2235,28 +2233,45 @@
         comunidadId,
         comunidadNombre: nombreComunidad(comunidadId),
         tipo,
-        categoria: document.getElementById("movCategoria").value,
+        categoria: document.getElementById(`movComCategoria_${comunidadId}`)?.value || "Otros",
         ambito: persona ? "Vecino" : "Comunidad",
         vecinoId: persona ? valorPersonaSelector(persona) : "",
         vecinoNombre: persona?.nombre || "",
-        tercero: document.getElementById("movTercero").value.trim(),
-        concepto: document.getElementById("movConcepto").value.trim(),
+        tercero: document.getElementById(`movComTercero_${comunidadId}`)?.value.trim() || "",
+        concepto: document.getElementById(`movComConcepto_${comunidadId}`)?.value.trim() || "",
         importe,
-        estado: document.getElementById("movEstado").value,
+        estado: document.getElementById(`movComEstado_${comunidadId}`)?.value || (tipo === "Ingreso" ? "Cobrado" : "Pagado"),
         creadoPor: auth.currentUser?.email || "",
         creadoEn: serverTimestamp()
       });
 
-      document.getElementById("movTercero").value = "";
-      document.getElementById("movConcepto").value = "";
-      document.getElementById("movImporte").value = "";
+      const tercero = document.getElementById(`movComTercero_${comunidadId}`);
+      const concepto = document.getElementById(`movComConcepto_${comunidadId}`);
+      const importeEl = document.getElementById(`movComImporte_${comunidadId}`);
+      if (tercero) tercero.value = "";
+      if (concepto) concepto.value = "";
+      if (importeEl) importeEl.value = "";
+
       document.getElementById("mesGlobal").value = fecha.slice(0, 7);
-      document.getElementById("desplegableNuevoMovimiento").open = false;
+      const filtroComunidad = document.getElementById("movFiltroComunidad");
+      if (filtroComunidad && [...filtroComunidad.options].some(op => op.value === comunidadId)) {
+        filtroComunidad.value = comunidadId;
+      }
+      const formulario = document.getElementById(`movForm_${comunidadId}`);
+      if (formulario) formulario.open = false;
     } catch (error) {
       console.error(error);
       alert("No se pudo guardar el movimiento.");
     }
-  });
+  };
+
+  window.cambiarFiltroMovimientos = filtro => {
+    filtroMovimientos = filtro;
+    document.querySelectorAll(".filtro-mov").forEach(btn => {
+      btn.classList.toggle("activo", btn.dataset.filtro === filtro);
+    });
+    mostrarMovimientos();
+  };
 
   window.editarMovimiento = id => {
     const mov = movimientos.find(m => m.id === id);
@@ -3361,6 +3376,8 @@
             }
             <button type="button" class="btn-mini btn-balance" onclick="generarBalanceComunidad('${com.id}')">📊 Balance comunidad</button>
           </div>
+
+          ${activa ? formularioNuevoMovimientoComunidadHTML(com) : ""}
 
           <details class="balance-historial">
             <summary><span><span class="flecha">▶</span> 📚 Histórico de balances</span><span>${balances.length}</span></summary>
