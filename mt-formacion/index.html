@@ -1,1 +1,644 @@
-1
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
+<title>MT Formación · Autoescuela Formación</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --fondo: #f1f5f9;
+    --panel: #ffffff;
+    --texto: #0f172a;
+    --suave: #64748b;
+    --borde: #dbe3ee;
+    --primario: #0f172a;
+    --primario2: #1e293b;
+    --verde: #166534;
+    --verde-bg: #dcfce7;
+    --amarillo: #92400e;
+    --amarillo-bg: #fef3c7;
+    --rojo: #991b1b;
+    --rojo-bg: #fee2e2;
+    --azul: #075985;
+    --azul-bg: #e0f2fe;
+  }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+  }
+  .oculto { display: none !important; }
+  header {
+    background: linear-gradient(135deg, var(--primario), var(--primario2));
+    color: white;
+    text-align: center;
+    padding: 26px 14px 22px;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, .18);
+  }
+  header h1 { margin: 0; font-size: clamp(22px, 5vw, 31px); }
+  header p { margin: 7px 0 0; font-weight: 650; font-size: clamp(13px, 3.5vw, 16px); }
+  .marca { margin-top: 7px; font-size: 12px; opacity: .82; white-space: nowrap; }
+  .container { max-width: 1120px; margin: 0 auto; padding: 14px; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 3px 12px rgba(15,23,42,.05);
+  }
+  .usuario { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+  .usuario-email { color: var(--suave); font-size: 13px; word-break: break-all; }
+  .acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+  button {
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 13px;
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+  }
+  .btn { background: var(--primario); color: white; }
+  .btn-sec { background: #e2e8f0; color: #0f172a; }
+  .btn-ok { background: var(--verde-bg); color: var(--verde); }
+  .btn-danger { background: var(--rojo-bg); color: var(--rojo); }
+  .btn-mini { padding: 7px 10px; font-size: 12px; }
+  .login { max-width: 460px; margin: 42px auto; text-align: center; }
+  .login button { width: 100%; margin-top: 12px; }
+  .grid-resumen {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+  .tarjeta {
+    background: #f8fafc;
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .tarjeta strong { display: block; font-size: 23px; margin-bottom: 3px; }
+  .tarjeta span { color: var(--suave); font-size: 12px; font-weight: 700; }
+  details.modulo {
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  details.modulo > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 17px;
+    font-size: 17px;
+    font-weight: 800;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  details.modulo > summary::-webkit-details-marker { display: none; }
+  details.modulo > summary::after { content: "⌄"; color: var(--suave); }
+  details.modulo[open] > summary::after { content: "⌃"; }
+  .contenido-modulo { border-top: 1px solid var(--borde); padding: 15px; }
+  details.subform {
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    margin-bottom: 14px;
+    background: #f8fafc;
+  }
+  details.subform summary { cursor: pointer; font-weight: 800; padding: 13px; }
+  .form { padding: 0 13px 13px; }
+  .fila { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .fila-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  label { display: block; font-size: 12px; font-weight: 800; color: #334155; margin: 10px 0 5px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: white;
+    color: var(--texto);
+    font: inherit;
+  }
+  textarea { min-height: 74px; resize: vertical; }
+  .guardar { width: 100%; margin-top: 12px; background: var(--primario); color: white; }
+  .lista { display: grid; gap: 9px; }
+  .item {
+    border: 1px solid var(--borde);
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .item-cab { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .item-titulo { font-weight: 850; }
+  .meta { color: var(--suave); font-size: 12px; margin-top: 4px; line-height: 1.45; }
+  .item .acciones { margin-top: 9px; }
+  .estado { display: inline-block; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 850; }
+  .estado.ok { color: var(--verde); background: var(--verde-bg); }
+  .estado.pend { color: var(--amarillo); background: var(--amarillo-bg); }
+  .estado.bad { color: var(--rojo); background: var(--rojo-bg); }
+  .estado.info { color: var(--azul); background: var(--azul-bg); }
+  .vacio { color: var(--suave); text-align: center; padding: 18px 8px; font-size: 13px; }
+  .mini-resumen { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .mini-resumen span { border-radius: 999px; padding: 6px 9px; background: #eef2f7; font-size: 12px; font-weight: 750; }
+  .aviso-local {
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+  .pie { text-align: center; color: var(--suave); font-size: 11px; padding: 10px 10px 28px; }
+  .separador { height: 1px; background: var(--borde); margin: 12px 0; }
+  h2, h3 { margin-top: 0; }
+  @media(max-width: 820px) {
+    .grid-resumen { grid-template-columns: repeat(2, 1fr); }
+    .fila-3 { grid-template-columns: 1fr 1fr; }
+  }
+  @media(max-width: 560px) {
+    .container { padding: 10px; }
+    .usuario { align-items: flex-start; flex-direction: column; }
+    .acciones.usuario-acciones { width: 100%; }
+    .acciones.usuario-acciones button { flex: 1; }
+    .fila, .fila-3 { grid-template-columns: 1fr; }
+    .grid-resumen { grid-template-columns: 1fr 1fr; }
+    .marca { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🚗 MT Formación · Autoescuela Formación</h1>
+  <p>Alumnos · clases · exámenes · recuperación de puntos</p>
+  <div class="marca">Software de gestión desarrollado por Travesa Solutions</div>
+</header>
+
+<main class="container">
+  <section id="login" class="panel login oculto">
+    <h2>🔐 Acceso</h2>
+    <p>Inicia sesión con una cuenta autorizada de Vilanovaracing.</p>
+    <button id="btnLogin" class="btn">Entrar con Google</button>
+    <div class="meta" style="margin-top:14px;">Aplicación corporativa de Vilanovaracing</div>
+  </section>
+
+  <div id="app" class="oculto">
+    <section class="panel usuario">
+      <div>
+        <strong id="nombreUsuario">Usuario</strong>
+        <div id="emailUsuario" class="usuario-email"></div>
+      </div>
+      <div class="acciones usuario-acciones">
+        <button id="btnEmpresas" class="btn-sec" type="button">← Empresas</button>
+        <button id="btnSalir" class="btn-sec" type="button">Salir</button>
+      </div>
+    </section>
+
+    <div class="aviso-local">🧪 MT Formación v0.1: los datos de prueba de esta primera versión se guardan solo en este dispositivo. Todavía no modifica las colecciones de ARCAX en Firebase.</div>
+
+    <section class="panel">
+      <h2 style="margin-bottom:12px;">Resumen</h2>
+      <div class="grid-resumen">
+        <div class="tarjeta"><strong id="rAlumnos">0</strong><span>Alumnos activos</span></div>
+        <div class="tarjeta"><strong id="rClases">0</strong><span>Clases registradas</span></div>
+        <div class="tarjeta"><strong id="rExamenes">0</strong><span>Exámenes próximos</span></div>
+        <div class="tarjeta"><strong id="rPendiente">0 €</strong><span>Pendiente cobro</span></div>
+        <div class="tarjeta"><strong id="rPuntos">0</strong><span>Recuperación puntos</span></div>
+      </div>
+    </section>
+
+    <details class="modulo" open>
+      <summary>👤 Alumnos</summary>
+      <div class="contenido-modulo">
+        <details class="subform">
+          <summary>➕ Nuevo alumno</summary>
+          <form id="formAlumno" class="form">
+            <input id="alumnoId" type="hidden">
+            <div class="fila">
+              <div><label>Nombre y apellidos</label><input id="alumnoNombre" required></div>
+              <div><label>DNI / NIE</label><input id="alumnoDni"></div>
+            </div>
+            <div class="fila-3">
+              <div><label>Fecha nacimiento</label><input id="alumnoNacimiento" type="date"></div>
+              <div><label>Teléfono</label><input id="alumnoTelefono" type="tel"></div>
+              <div><label>Email</label><input id="alumnoEmail" type="email"></div>
+            </div>
+            <label>Dirección</label><input id="alumnoDireccion">
+            <div class="fila-3">
+              <div><label>Fecha de alta</label><input id="alumnoAlta" type="date"></div>
+              <div><label>Permiso</label>
+                <select id="alumnoPermiso"><option>B</option><option>AM</option><option>A1</option><option>A2</option><option>A</option><option>C</option><option>C1</option><option>D</option><option>Otros</option></select>
+              </div>
+              <div><label>Estado</label><select id="alumnoEstado"><option>Activo</option><option>Aprobado</option><option>Baja</option></select></div>
+            </div>
+            <label>Profesor asignado</label><input id="alumnoProfesor" placeholder="Nombre del profesor">
+            <label>Observaciones</label><textarea id="alumnoNotas"></textarea>
+            <button class="guardar" type="submit">Guardar alumno</button>
+          </form>
+        </details>
+        <div id="listaAlumnos" class="lista"></div>
+      </div>
+    </details>
+
+    <details class="modulo">
+      <summary>🚗 Clases prácticas</summary>
+      <div class="contenido-modulo">
+        <details class="subform">
+          <summary>➕ Nueva clase práctica</summary>
+          <form id="formClase" class="form">
+            <div class="fila">
+              <div><label>Alumno</label><select id="claseAlumno" required></select></div>
+              <div><label>Fecha</label><input id="claseFecha" type="date" required></div>
+            </div>
+            <div class="fila-3">
+              <div><label>Hora</label><input id="claseHora" type="time"></div>
+              <div><label>Duración (min)</label><input id="claseDuracion" type="number" min="1" value="45"></div>
+              <div><label>Importe (€)</label><input id="claseImporte" type="number" min="0" step="0.01"></div>
+            </div>
+            <div class="fila-3">
+              <div><label>Profesor</label><input id="claseProfesor"></div>
+              <div><label>Vehículo / matrícula</label><input id="claseVehiculo"></div>
+              <div><label>Estado pago</label><select id="claseEstado"><option>Pagada</option><option>Pendiente</option></select></div>
+            </div>
+            <label>Observaciones</label><textarea id="claseNotas"></textarea>
+            <button class="guardar" type="submit">Guardar clase</button>
+          </form>
+        </details>
+        <div id="resumenClases" class="mini-resumen"></div>
+        <div id="listaClases" class="lista"></div>
+      </div>
+    </details>
+
+    <details class="modulo">
+      <summary>📝 Exámenes</summary>
+      <div class="contenido-modulo">
+        <details class="subform">
+          <summary>➕ Nuevo examen</summary>
+          <form id="formExamen" class="form">
+            <div class="fila">
+              <div><label>Alumno</label><select id="examenAlumno" required></select></div>
+              <div><label>Tipo</label><select id="examenTipo"><option>Teórico</option><option>Práctico</option></select></div>
+            </div>
+            <div class="fila-3">
+              <div><label>Fecha</label><input id="examenFecha" type="date" required></div>
+              <div><label>Convocatoria</label><input id="examenConvocatoria" type="number" min="1" value="1"></div>
+              <div><label>Resultado</label><select id="examenResultado"><option>Pendiente</option><option>Apto</option><option>No apto</option></select></div>
+            </div>
+            <label>Observaciones</label><textarea id="examenNotas"></textarea>
+            <button class="guardar" type="submit">Guardar examen</button>
+          </form>
+        </details>
+        <div id="listaExamenes" class="lista"></div>
+      </div>
+    </details>
+
+    <details class="modulo">
+      <summary>💶 Cobros</summary>
+      <div class="contenido-modulo">
+        <details class="subform">
+          <summary>➕ Nuevo cobro</summary>
+          <form id="formCobro" class="form">
+            <div class="fila">
+              <div><label>Alumno</label><select id="cobroAlumno" required></select></div>
+              <div><label>Fecha</label><input id="cobroFecha" type="date" required></div>
+            </div>
+            <div class="fila-3">
+              <div><label>Concepto</label><select id="cobroConcepto"><option>Matrícula</option><option>Clases</option><option>Tasas</option><option>Examen</option><option>Recuperación de puntos</option><option>Otros</option></select></div>
+              <div><label>Importe (€)</label><input id="cobroImporte" type="number" min="0" step="0.01" required></div>
+              <div><label>Estado</label><select id="cobroEstado"><option>Cobrado</option><option>Pendiente</option></select></div>
+            </div>
+            <label>Observaciones</label><textarea id="cobroNotas"></textarea>
+            <button class="guardar" type="submit">Guardar cobro</button>
+          </form>
+        </details>
+        <div id="resumenCobros" class="mini-resumen"></div>
+        <div id="listaCobros" class="lista"></div>
+      </div>
+    </details>
+
+    <details class="modulo">
+      <summary>🔄 Recuperación de puntos</summary>
+      <div class="contenido-modulo">
+        <details class="subform">
+          <summary>➕ Nuevo expediente / curso</summary>
+          <form id="formPuntos" class="form">
+            <div class="fila">
+              <div><label>Alumno / participante</label><input id="puntosPersona" required></div>
+              <div><label>Tipo</label><select id="puntosTipo"><option>Recuperación parcial</option><option>Recuperación total</option><option>Curso sensibilización</option><option>Otro</option></select></div>
+            </div>
+            <div class="fila-3">
+              <div><label>Fecha inicio</label><input id="puntosInicio" type="date"></div>
+              <div><label>Horas</label><input id="puntosHoras" type="number" min="0"></div>
+              <div><label>Estado</label><select id="puntosEstado"><option>Pendiente</option><option>En curso</option><option>Finalizado</option></select></div>
+            </div>
+            <label>Observaciones</label><textarea id="puntosNotas"></textarea>
+            <button class="guardar" type="submit">Guardar expediente</button>
+          </form>
+        </details>
+        <div id="listaPuntos" class="lista"></div>
+      </div>
+    </details>
+
+    <details class="modulo">
+      <summary>👨‍🏫 Profesores · 🚘 Vehículos · 🔔 Avisos</summary>
+      <div class="contenido-modulo">
+        <p class="meta">Estos módulos quedan reservados para la siguiente fase. La estructura v0.1 se centra primero en alumnos, clases prácticas, exámenes, cobros y recuperación de puntos.</p>
+      </div>
+    </details>
+
+    <div class="pie">Aplicación corporativa de Vilanovaracing · Software desarrollado por Travesa Solutions</div>
+  </div>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyACsGxGqOyqVaIyu614R2dv0WRu-2Fg_XQ",
+    authDomain: "gestion-de-fincas-95651.firebaseapp.com",
+    projectId: "gestion-de-fincas-95651",
+    storageBucket: "gestion-de-fincas-95651.firebasestorage.app",
+    messagingSenderId: "288905074205",
+    appId: "1:288905074205:web:3e3ad366d80241244318f4"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const auth = getAuth(fbApp);
+  const provider = new GoogleAuthProvider();
+
+  const KEYS = {
+    alumnos: "mtf_v01_alumnos",
+    clases: "mtf_v01_clases",
+    examenes: "mtf_v01_examenes",
+    cobros: "mtf_v01_cobros",
+    puntos: "mtf_v01_puntos"
+  };
+
+  const hoy = () => new Date().toISOString().slice(0, 10);
+  const cargar = key => {
+    try { return JSON.parse(localStorage.getItem(key) || "[]"); }
+    catch { return []; }
+  };
+  const guardar = (key, valor) => localStorage.setItem(key, JSON.stringify(valor));
+  const idNuevo = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  const esc = valor => String(valor ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+  const euros = n => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(Number(n || 0));
+  const fechaBonita = f => f ? new Intl.DateTimeFormat("es-ES").format(new Date(`${f}T12:00:00`)) : "—";
+
+  let alumnos = cargar(KEYS.alumnos);
+  let clases = cargar(KEYS.clases);
+  let examenes = cargar(KEYS.examenes);
+  let cobros = cargar(KEYS.cobros);
+  let puntos = cargar(KEYS.puntos);
+
+  const alumnoPorId = id => alumnos.find(a => a.id === id);
+  const nombreAlumno = id => alumnoPorId(id)?.nombre || "Alumno eliminado";
+
+  function opcionesAlumnos() {
+    const activos = alumnos.filter(a => a.estado !== "Baja");
+    const html = `<option value="">Selecciona alumno</option>` + activos.map(a => `<option value="${esc(a.id)}">${esc(a.nombre)} · ${esc(a.permiso || "")}</option>`).join("");
+    ["claseAlumno", "examenAlumno", "cobroAlumno"].forEach(id => document.getElementById(id).innerHTML = html);
+  }
+
+  function badge(texto) {
+    const t = String(texto || "");
+    const clase = ["Activo","Pagada","Cobrado","Apto","Finalizado"].includes(t) ? "ok" :
+      ["Baja","No apto"].includes(t) ? "bad" :
+      ["Pendiente","En curso"].includes(t) ? "pend" : "info";
+    return `<span class="estado ${clase}">${esc(t)}</span>`;
+  }
+
+  function pintarResumen() {
+    document.getElementById("rAlumnos").textContent = alumnos.filter(a => a.estado === "Activo").length;
+    document.getElementById("rClases").textContent = clases.length;
+    const hoyIso = hoy();
+    document.getElementById("rExamenes").textContent = examenes.filter(e => e.resultado === "Pendiente" && e.fecha >= hoyIso).length;
+    const pendiente = cobros.filter(c => c.estado === "Pendiente").reduce((s,c) => s + Number(c.importe || 0), 0) + clases.filter(c => c.estado === "Pendiente").reduce((s,c) => s + Number(c.importe || 0), 0);
+    document.getElementById("rPendiente").textContent = euros(pendiente);
+    document.getElementById("rPuntos").textContent = puntos.filter(p => p.estado !== "Finalizado").length;
+  }
+
+  function pintarAlumnos() {
+    const el = document.getElementById("listaAlumnos");
+    const ordenados = [...alumnos].sort((a,b) => (a.estado === "Activo" ? -1 : 1) - (b.estado === "Activo" ? -1 : 1) || a.nombre.localeCompare(b.nombre));
+    if (!ordenados.length) el.innerHTML = `<div class="vacio">Todavía no hay alumnos registrados.</div>`;
+    else el.innerHTML = ordenados.map(a => {
+      const nClases = clases.filter(c => c.alumnoId === a.id).length;
+      const nExamenes = examenes.filter(e => e.alumnoId === a.id).length;
+      const pendiente = cobros.filter(c => c.alumnoId === a.id && c.estado === "Pendiente").reduce((s,c) => s + Number(c.importe || 0), 0);
+      return `<article class="item">
+        <div class="item-cab"><div><div class="item-titulo">${esc(a.nombre)}</div><div class="meta">${esc(a.dni || "Sin DNI")} · Permiso ${esc(a.permiso || "—")} · Alta ${fechaBonita(a.alta)}</div></div>${badge(a.estado)}</div>
+        <div class="meta">📞 ${esc(a.telefono || "—")} · ✉️ ${esc(a.email || "—")}<br>Profesor: ${esc(a.profesor || "—")} · Clases: ${nClases} · Exámenes: ${nExamenes} · Pendiente: ${euros(pendiente)}</div>
+        ${a.notas ? `<div class="meta">${esc(a.notas)}</div>` : ""}
+        <div class="acciones"><button class="btn-mini btn-sec" onclick="editarAlumno('${a.id}')">Editar</button><button class="btn-mini btn-danger" onclick="eliminarRegistro('alumno','${a.id}')">Eliminar</button></div>
+      </article>`;
+    }).join("");
+  }
+
+  function pintarClases() {
+    const el = document.getElementById("listaClases");
+    const pagadas = clases.filter(c => c.estado === "Pagada").length;
+    const pend = clases.filter(c => c.estado === "Pendiente").reduce((s,c) => s + Number(c.importe || 0), 0);
+    document.getElementById("resumenClases").innerHTML = `<span>${clases.length} clases</span><span>${pagadas} pagadas</span><span>${euros(pend)} pendiente</span>`;
+    const ordenadas = [...clases].sort((a,b) => `${b.fecha}${b.hora}`.localeCompare(`${a.fecha}${a.hora}`));
+    if (!ordenadas.length) el.innerHTML = `<div class="vacio">Todavía no hay clases prácticas registradas.</div>`;
+    else el.innerHTML = ordenadas.map(c => `<article class="item">
+      <div class="item-cab"><div><div class="item-titulo">${esc(nombreAlumno(c.alumnoId))}</div><div class="meta">${fechaBonita(c.fecha)} · ${esc(c.hora || "Sin hora")} · ${esc(c.duracion || 45)} min</div></div>${badge(c.estado)}</div>
+      <div class="meta">Profesor: ${esc(c.profesor || "—")} · Vehículo: ${esc(c.vehiculo || "—")} · ${euros(c.importe)}</div>
+      ${c.notas ? `<div class="meta">${esc(c.notas)}</div>` : ""}
+      <div class="acciones"><button class="btn-mini btn-danger" onclick="eliminarRegistro('clase','${c.id}')">Eliminar</button></div>
+    </article>`).join("");
+  }
+
+  function pintarExamenes() {
+    const el = document.getElementById("listaExamenes");
+    const ordenados = [...examenes].sort((a,b) => b.fecha.localeCompare(a.fecha));
+    if (!ordenados.length) el.innerHTML = `<div class="vacio">Todavía no hay exámenes registrados.</div>`;
+    else el.innerHTML = ordenados.map(e => `<article class="item">
+      <div class="item-cab"><div><div class="item-titulo">${esc(nombreAlumno(e.alumnoId))} · ${esc(e.tipo)}</div><div class="meta">${fechaBonita(e.fecha)} · Convocatoria ${esc(e.convocatoria || 1)}</div></div>${badge(e.resultado)}</div>
+      ${e.notas ? `<div class="meta">${esc(e.notas)}</div>` : ""}
+      <div class="acciones">${e.resultado === "Pendiente" ? `<button class="btn-mini btn-ok" onclick="resultadoExamen('${e.id}','Apto')">Apto</button><button class="btn-mini btn-danger" onclick="resultadoExamen('${e.id}','No apto')">No apto</button>` : ""}<button class="btn-mini btn-sec" onclick="resultadoExamen('${e.id}','Pendiente')">Pendiente</button><button class="btn-mini btn-danger" onclick="eliminarRegistro('examen','${e.id}')">Eliminar</button></div>
+    </article>`).join("");
+  }
+
+  function pintarCobros() {
+    const el = document.getElementById("listaCobros");
+    const cobrado = cobros.filter(c => c.estado === "Cobrado").reduce((s,c) => s + Number(c.importe || 0), 0);
+    const pendiente = cobros.filter(c => c.estado === "Pendiente").reduce((s,c) => s + Number(c.importe || 0), 0);
+    document.getElementById("resumenCobros").innerHTML = `<span>Cobrado: ${euros(cobrado)}</span><span>Pendiente: ${euros(pendiente)}</span>`;
+    const ordenados = [...cobros].sort((a,b) => b.fecha.localeCompare(a.fecha));
+    if (!ordenados.length) el.innerHTML = `<div class="vacio">Todavía no hay cobros registrados.</div>`;
+    else el.innerHTML = ordenados.map(c => `<article class="item">
+      <div class="item-cab"><div><div class="item-titulo">${esc(nombreAlumno(c.alumnoId))} · ${esc(c.concepto)}</div><div class="meta">${fechaBonita(c.fecha)} · ${euros(c.importe)}</div></div>${badge(c.estado)}</div>
+      ${c.notas ? `<div class="meta">${esc(c.notas)}</div>` : ""}
+      <div class="acciones">${c.estado === "Pendiente" ? `<button class="btn-mini btn-ok" onclick="marcarCobro('${c.id}')">Marcar cobrado</button>` : ""}<button class="btn-mini btn-danger" onclick="eliminarRegistro('cobro','${c.id}')">Eliminar</button></div>
+    </article>`).join("");
+  }
+
+  function pintarPuntos() {
+    const el = document.getElementById("listaPuntos");
+    const ordenados = [...puntos].sort((a,b) => (b.inicio || "").localeCompare(a.inicio || ""));
+    if (!ordenados.length) el.innerHTML = `<div class="vacio">Todavía no hay expedientes de recuperación de puntos.</div>`;
+    else el.innerHTML = ordenados.map(p => `<article class="item">
+      <div class="item-cab"><div><div class="item-titulo">${esc(p.persona)}</div><div class="meta">${esc(p.tipo)} · Inicio ${fechaBonita(p.inicio)} · ${esc(p.horas || 0)} h</div></div>${badge(p.estado)}</div>
+      ${p.notas ? `<div class="meta">${esc(p.notas)}</div>` : ""}
+      <div class="acciones">${p.estado !== "Finalizado" ? `<button class="btn-mini btn-ok" onclick="finalizarPuntos('${p.id}')">Finalizar</button>` : ""}<button class="btn-mini btn-danger" onclick="eliminarRegistro('puntos','${p.id}')">Eliminar</button></div>
+    </article>`).join("");
+  }
+
+  function pintarTodo() {
+    opcionesAlumnos();
+    pintarResumen();
+    pintarAlumnos();
+    pintarClases();
+    pintarExamenes();
+    pintarCobros();
+    pintarPuntos();
+  }
+
+  function persistirTodo() {
+    guardar(KEYS.alumnos, alumnos);
+    guardar(KEYS.clases, clases);
+    guardar(KEYS.examenes, examenes);
+    guardar(KEYS.cobros, cobros);
+    guardar(KEYS.puntos, puntos);
+    pintarTodo();
+  }
+
+  document.getElementById("alumnoAlta").value = hoy();
+  document.getElementById("claseFecha").value = hoy();
+  document.getElementById("examenFecha").value = hoy();
+  document.getElementById("cobroFecha").value = hoy();
+  document.getElementById("puntosInicio").value = hoy();
+
+  document.getElementById("formAlumno").addEventListener("submit", e => {
+    e.preventDefault();
+    const id = document.getElementById("alumnoId").value || idNuevo();
+    const registro = {
+      id,
+      nombre: document.getElementById("alumnoNombre").value.trim(),
+      dni: document.getElementById("alumnoDni").value.trim(),
+      nacimiento: document.getElementById("alumnoNacimiento").value,
+      telefono: document.getElementById("alumnoTelefono").value.trim(),
+      email: document.getElementById("alumnoEmail").value.trim(),
+      direccion: document.getElementById("alumnoDireccion").value.trim(),
+      alta: document.getElementById("alumnoAlta").value || hoy(),
+      permiso: document.getElementById("alumnoPermiso").value,
+      estado: document.getElementById("alumnoEstado").value,
+      profesor: document.getElementById("alumnoProfesor").value.trim(),
+      notas: document.getElementById("alumnoNotas").value.trim()
+    };
+    const idx = alumnos.findIndex(a => a.id === id);
+    if (idx >= 0) alumnos[idx] = registro; else alumnos.push(registro);
+    e.target.reset();
+    document.getElementById("alumnoId").value = "";
+    document.getElementById("alumnoAlta").value = hoy();
+    persistirTodo();
+  });
+
+  window.editarAlumno = id => {
+    const a = alumnoPorId(id); if (!a) return;
+    document.getElementById("alumnoId").value = a.id;
+    document.getElementById("alumnoNombre").value = a.nombre || "";
+    document.getElementById("alumnoDni").value = a.dni || "";
+    document.getElementById("alumnoNacimiento").value = a.nacimiento || "";
+    document.getElementById("alumnoTelefono").value = a.telefono || "";
+    document.getElementById("alumnoEmail").value = a.email || "";
+    document.getElementById("alumnoDireccion").value = a.direccion || "";
+    document.getElementById("alumnoAlta").value = a.alta || hoy();
+    document.getElementById("alumnoPermiso").value = a.permiso || "B";
+    document.getElementById("alumnoEstado").value = a.estado || "Activo";
+    document.getElementById("alumnoProfesor").value = a.profesor || "";
+    document.getElementById("alumnoNotas").value = a.notas || "";
+    const detalle = document.getElementById("formAlumno").closest("details");
+    detalle.open = true;
+    detalle.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  document.getElementById("formClase").addEventListener("submit", e => {
+    e.preventDefault();
+    clases.push({
+      id: idNuevo(), alumnoId: document.getElementById("claseAlumno").value,
+      fecha: document.getElementById("claseFecha").value, hora: document.getElementById("claseHora").value,
+      duracion: Number(document.getElementById("claseDuracion").value || 45), importe: Number(document.getElementById("claseImporte").value || 0),
+      profesor: document.getElementById("claseProfesor").value.trim(), vehiculo: document.getElementById("claseVehiculo").value.trim(),
+      estado: document.getElementById("claseEstado").value, notas: document.getElementById("claseNotas").value.trim()
+    });
+    e.target.reset(); document.getElementById("claseFecha").value = hoy(); document.getElementById("claseDuracion").value = 45; persistirTodo();
+  });
+
+  document.getElementById("formExamen").addEventListener("submit", e => {
+    e.preventDefault();
+    examenes.push({
+      id: idNuevo(), alumnoId: document.getElementById("examenAlumno").value, tipo: document.getElementById("examenTipo").value,
+      fecha: document.getElementById("examenFecha").value, convocatoria: Number(document.getElementById("examenConvocatoria").value || 1),
+      resultado: document.getElementById("examenResultado").value, notas: document.getElementById("examenNotas").value.trim()
+    });
+    e.target.reset(); document.getElementById("examenFecha").value = hoy(); document.getElementById("examenConvocatoria").value = 1; persistirTodo();
+  });
+
+  document.getElementById("formCobro").addEventListener("submit", e => {
+    e.preventDefault();
+    cobros.push({
+      id: idNuevo(), alumnoId: document.getElementById("cobroAlumno").value, fecha: document.getElementById("cobroFecha").value,
+      concepto: document.getElementById("cobroConcepto").value, importe: Number(document.getElementById("cobroImporte").value || 0),
+      estado: document.getElementById("cobroEstado").value, notas: document.getElementById("cobroNotas").value.trim()
+    });
+    e.target.reset(); document.getElementById("cobroFecha").value = hoy(); persistirTodo();
+  });
+
+  document.getElementById("formPuntos").addEventListener("submit", e => {
+    e.preventDefault();
+    puntos.push({
+      id: idNuevo(), persona: document.getElementById("puntosPersona").value.trim(), tipo: document.getElementById("puntosTipo").value,
+      inicio: document.getElementById("puntosInicio").value, horas: Number(document.getElementById("puntosHoras").value || 0),
+      estado: document.getElementById("puntosEstado").value, notas: document.getElementById("puntosNotas").value.trim()
+    });
+    e.target.reset(); document.getElementById("puntosInicio").value = hoy(); persistirTodo();
+  });
+
+  window.resultadoExamen = (id, resultado) => { const e = examenes.find(x => x.id === id); if (e) { e.resultado = resultado; persistirTodo(); } };
+  window.marcarCobro = id => { const c = cobros.find(x => x.id === id); if (c) { c.estado = "Cobrado"; persistirTodo(); } };
+  window.finalizarPuntos = id => { const p = puntos.find(x => x.id === id); if (p) { p.estado = "Finalizado"; persistirTodo(); } };
+
+  window.eliminarRegistro = (tipo, id) => {
+    if (!confirm("¿Eliminar este registro?")) return;
+    if (tipo === "alumno") {
+      if (clases.some(c => c.alumnoId === id) || examenes.some(e => e.alumnoId === id) || cobros.some(c => c.alumnoId === id)) {
+        alert("Este alumno tiene clases, exámenes o cobros asociados. Es mejor cambiar su estado a Baja para conservar el histórico."); return;
+      }
+      alumnos = alumnos.filter(x => x.id !== id);
+    } else if (tipo === "clase") clases = clases.filter(x => x.id !== id);
+    else if (tipo === "examen") examenes = examenes.filter(x => x.id !== id);
+    else if (tipo === "cobro") cobros = cobros.filter(x => x.id !== id);
+    else if (tipo === "puntos") puntos = puntos.filter(x => x.id !== id);
+    persistirTodo();
+  };
+
+  document.getElementById("btnLogin").addEventListener("click", async () => {
+    try { await signInWithPopup(auth, provider); }
+    catch (error) { console.error(error); alert("No se pudo iniciar sesión. " + error.message); }
+  });
+  document.getElementById("btnSalir").addEventListener("click", () => signOut(auth));
+  document.getElementById("btnEmpresas").addEventListener("click", () => { window.location.href = "../"; });
+
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      document.getElementById("login").classList.remove("oculto");
+      document.getElementById("app").classList.add("oculto");
+      return;
+    }
+    document.getElementById("login").classList.add("oculto");
+    document.getElementById("app").classList.remove("oculto");
+    document.getElementById("nombreUsuario").textContent = user.displayName || "Usuario";
+    document.getElementById("emailUsuario").textContent = user.email || "";
+    pintarTodo();
+  });
+</script>
+</body>
+</html>
