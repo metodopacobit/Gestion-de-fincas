@@ -4410,8 +4410,25 @@
                 <div class="lista-vacia">
                   Todavía no hay notificaciones realizadas.
                 </div>
-      /* VENCIMIENTOS */
+                 `;
+        }
 
+        if (listaRecibidas) {
+          listaRecibidas.innerHTML =
+            recibidas.length
+              ? recibidas
+                  .map(notificacionHTML)
+                  .join("")
+              : `
+                <div class="lista-vacia">
+                  Todavía no hay avisos recibidos.
+                </div>
+              `;
+        }
+      }
+
+      /* VENCIMIENTOS */
+      
       document.getElementById("guardarVencimiento")
         .addEventListener("click", async () => {
           const comunidadId =
@@ -4895,22 +4912,7 @@
             );
           }
         };
-              `;
-        }
-
-        if (listaRecibidas) {
-          listaRecibidas.innerHTML =
-            recibidas.length
-              ? recibidas
-                  .map(notificacionHTML)
-                  .join("")
-              : `
-                <div class="lista-vacia">
-                  Todavía no hay avisos recibidos.
-                </div>
-              `;
-        }
-      }
+             
       /* RECURRENTES */
 
       document.getElementById("guardarRecurrente")
