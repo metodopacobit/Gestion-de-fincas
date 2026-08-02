@@ -1745,36 +1745,22 @@
     <div class="acciones" style="margin-top:16px;">
       <button
         id="anadirConceptoBalance"
-        class="btn-mini btn-editar"
+        class="btn-mini btn-editar oculto"
         type="button"
+        onclick="anadirConceptoBalance()"
       >
         ➕ Concepto extraordinario
       </button>
 
       <button
         id="guardarBalanceAbierto"
-        class="btn-mini btn-ok"
+        class="btn-mini btn-ok oculto"
         type="button"
+        onclick="guardarBalanceAbierto()"
       >
         💾 Guardar balance
       </button>
-<button
-  id="anadirConceptoBalance"
-  class="btn-mini btn-editar oculto"
-  type="button"
-  onclick="anadirConceptoBalance()"
->
-  ➕ Añadir concepto
-</button>
 
-<button
-  id="guardarBalanceAbierto"
-  class="btn-mini btn-ok oculto"
-  type="button"
-  onclick="guardarBalanceAbierto()"
->
-  💾 Guardar balance
-</button>
       <button
         id="descargarBalanceAbierto"
         class="btn-mini btn-ok"
@@ -3544,6 +3530,8 @@ cuotaMensual:
         `${nombreComunidad(comunidadId)} · ${presidente.nombre}`,
         comunidadId
       );
+
+      alert("Presidente guardado correctamente.");
     } catch (error) {
       console.error(error);
       alert("No se pudieron guardar los datos del presidente.");
@@ -8097,123 +8085,16 @@ window.eliminarConceptoBalance =
         balance,
         nombre = ""
       ) {
-        function repintarEditorBalance() {
-  const comunidadId =
-    balanceAbierto?.comunidadId;
+        if (
+          Number(balance?.version || 0) >= 2 &&
+          Array.isArray(balance?.filasVecinos)
+        ) {
+          return balanceDetalleHTML(
+            balance,
+            nombre
+          );
+        }
 
-  const balance =
-    balanceAbierto?.balance;
-
-  if (!comunidadId || !balance) {
-    return;
-  }
-
-  const comunidad =
-    comunidadPorId(comunidadId);
-
-  document.getElementById(
-    "contenidoBalance"
-  ).innerHTML =
-    balanceEditorHTML(
-      balance,
-      comunidad
-    );
-}
-
-function anadirConceptoBalance() {
-  const balance =
-    leerEditorBalance();
-
-  if (!balance) return;
-
-  const nombre = prompt(
-    "Nombre del concepto extraordinario:",
-    "Derrama"
-  )?.trim();
-
-  if (!nombre) return;
-
-  const yaExiste =
-    balance.conceptosExtra.some(
-      concepto =>
-        normalizarNombre(
-          concepto.nombre
-        ) === normalizarNombre(nombre)
-    );
-
-  if (yaExiste) {
-    alert(
-      "Ya existe un concepto con ese nombre."
-    );
-
-    return;
-  }
-
-  const concepto = {
-    id:
-      `extra_${Date.now()}_${Math.random()
-        .toString(36)
-        .slice(2, 7)}`,
-
-    nombre
-  };
-
-  balance.conceptosExtra.push(
-    concepto
-  );
-
-  balance.filasVecinos.forEach(
-    fila => {
-      fila.extras =
-        fila.extras || {};
-
-      fila.extras[concepto.id] = 0;
-    }
-  );
-
-  recalcularBalanceDetalle(balance);
-  repintarEditorBalance();
-}
-
-function eliminarConceptoBalance(indice) {
-  const balance =
-    leerEditorBalance();
-
-  if (!balance) return;
-
-  const concepto =
-    balance.conceptosExtra?.[indice];
-
-  if (!concepto) return;
-
-  const confirmar = confirm(
-    `¿Eliminar el concepto "${concepto.nombre}" del balance?`
-  );
-
-  if (!confirmar) return;
-
-  balance.conceptosExtra.splice(
-    indice,
-    1
-  );
-
-  balance.filasVecinos.forEach(
-    fila => {
-      if (fila.extras) {
-        delete fila.extras[concepto.id];
-      }
-    }
-  );
-
-  recalcularBalanceDetalle(balance);
-  repintarEditorBalance();
-}
-
-window.anadirConceptoBalance =
-  anadirConceptoBalance;
-
-window.eliminarConceptoBalance =
-  eliminarConceptoBalance;
         const catIngresos =
           Array.isArray(
             balance.categoriasIngreso
@@ -8567,10 +8448,440 @@ function abrirEditorBalance(
           .slice(0, 80) || "balance";
       }
 
+      function descargarPDFBalanceDetallado(
+        balance,
+        comunidad
+      ) {
+        const JsPDF = window.jspdf?.jsPDF;
+
+        if (!JsPDF) {
+          alert(
+            "No se pudo cargar el generador de PDF. Comprueba la conexión a Internet y vuelve a intentarlo."
+          );
+          return;
+        }
+
+        recalcularBalanceDetalle(balance);
+
+        const docPdf = new JsPDF({
+          unit: "mm",
+          format: "a4"
+        });
+
+        const margenX = 16;
+        const anchoUtil = 210 - margenX * 2;
+        const limiteY = 278;
+        let y = 18;
+
+        const nuevaPaginaSiHaceFalta = (alto = 8) => {
+          if (y + alto > limiteY) {
+            docPdf.addPage();
+            y = 18;
+          }
+        };
+
+        const texto = (valor, opciones = {}) => {
+          const {
+            tam = 9,
+            negrita = false,
+            sangria = 0,
+            espacio = 4.5
+          } = opciones;
+
+          docPdf.setFont(
+            "helvetica",
+            negrita ? "bold" : "normal"
+          );
+          docPdf.setFontSize(tam);
+
+          const lineas = docPdf.splitTextToSize(
+            String(valor ?? ""),
+            anchoUtil - sangria
+          );
+
+          nuevaPaginaSiHaceFalta(
+            Math.max(6, lineas.length * espacio)
+          );
+          docPdf.text(lineas, margenX + sangria, y);
+          y += Math.max(espacio, lineas.length * espacio);
+        };
+
+        const separador = () => {
+          nuevaPaginaSiHaceFalta(5);
+          docPdf.setDrawColor(210);
+          docPdf.line(margenX, y, 210 - margenX, y);
+          y += 5;
+        };
+
+        const tituloSeccion = titulo => {
+          nuevaPaginaSiHaceFalta(10);
+          texto(titulo, {
+            tam: 12,
+            negrita: true,
+            espacio: 7
+          });
+        };
+
+        const lineaImporte = (
+          etiqueta,
+          importe,
+          opciones = {}
+        ) => {
+          const {
+            negrita = false,
+            sangria = 0
+          } = opciones;
+
+          nuevaPaginaSiHaceFalta(6);
+          docPdf.setFont(
+            "helvetica",
+            negrita ? "bold" : "normal"
+          );
+          docPdf.setFontSize(9);
+          docPdf.text(
+            String(etiqueta),
+            margenX + sangria,
+            y
+          );
+          docPdf.text(
+            euro(numeroBalance(importe)),
+            210 - margenX,
+            y,
+            { align: "right" }
+          );
+          y += 5.5;
+        };
+
+        const nombre =
+          comunidad?.nombre ||
+          balance.comunidadNombre ||
+          "Comunidad";
+        const conceptos =
+          Array.isArray(balance.conceptosExtra)
+            ? balance.conceptosExtra
+            : [];
+        const filas =
+          Array.isArray(balance.filasVecinos)
+            ? balance.filasVecinos
+            : [];
+        const otrosIngresosDetalle =
+          Array.isArray(balance.otrosIngresosDetalle)
+            ? balance.otrosIngresosDetalle
+            : [];
+        const gastosDetalle =
+          Array.isArray(balance.gastosDetalle)
+            ? balance.gastosDetalle
+            : [];
+
+        docPdf.setProperties({
+          title: `Balance - ${nombre}`,
+          subject: "Balance detallado de comunidad",
+          author:
+            balance.creadoPor ||
+            "Gestión de fincas",
+          creator: "Gestión de fincas"
+        });
+
+        texto("GESTIÓN DE FINCAS", {
+          tam: 10,
+          negrita: true,
+          espacio: 5
+        });
+        texto("BALANCE DETALLADO DE COMUNIDAD", {
+          tam: 17,
+          negrita: true,
+          espacio: 8
+        });
+        texto(nombre, {
+          tam: 14,
+          negrita: true,
+          espacio: 7
+        });
+
+        if (comunidad?.direccion) {
+          texto(`Dirección: ${comunidad.direccion}`);
+        }
+        if (comunidad?.cif) {
+          texto(`CIF: ${comunidad.cif}`);
+        }
+
+        texto(
+          `Periodo: ${fechaBonita(balance.periodoInicio)} a ${fechaBonita(balance.periodoFin)}`
+        );
+        texto(
+          `Fecha de cierre: ${fechaBonita(balance.fechaCierre)}`
+        );
+
+        if (balance.creadoPor) {
+          texto(`Realizado por: ${balance.creadoPor}`);
+        }
+
+        separador();
+        tituloSeccion("RESUMEN");
+        lineaImporte(
+          "Ingresos cobrados",
+          balance.totalIngresos
+        );
+        lineaImporte(
+          "Gastos pagados",
+          balance.totalGastos
+        );
+        lineaImporte(
+          "Resultado del periodo",
+          balance.resultadoPeriodo
+        );
+        lineaImporte(
+          "Saldo anterior",
+          balance.saldoAnterior
+        );
+        lineaImporte(
+          "Saldo actual",
+          balance.saldoActual,
+          { negrita: true }
+        );
+        lineaImporte(
+          "Deuda total de vecinos",
+          balance.totalDeuda
+        );
+
+        separador();
+        tituloSeccion("DETALLE POR VECINO / PROPIETARIO");
+
+        if (!filas.length) {
+          texto("No hay vecinos registrados en este balance.");
+        }
+
+        filas.forEach((fila, indice) => {
+          nuevaPaginaSiHaceFalta(
+            42 + conceptos.length * 5.5
+          );
+
+          texto(
+            `${indice + 1}. ${fila.nombre || "Propietario sin nombre"}${fila.piso ? ` · ${fila.piso}` : ""}`,
+            {
+              tam: 11,
+              negrita: true,
+              espacio: 6
+            }
+          );
+
+          if (fila.direccion) {
+            texto(`Dirección: ${fila.direccion}`, {
+              tam: 8,
+              sangria: 3
+            });
+          }
+
+          lineaImporte(
+            "Cuota mensual",
+            fila.cuotaMensual,
+            { sangria: 3 }
+          );
+          lineaImporte(
+            "Atrasos anteriores",
+            fila.atrasos,
+            { sangria: 3 }
+          );
+          lineaImporte(
+            "Cuotas del periodo",
+            fila.cuotasPeriodo,
+            { sangria: 3 }
+          );
+
+          conceptos.forEach(concepto => {
+            lineaImporte(
+              `Extraordinario · ${concepto.nombre}`,
+              fila.extras?.[concepto.id],
+              { sangria: 3 }
+            );
+          });
+
+          lineaImporte(
+            "Total a pagar",
+            fila.totalAPagar,
+            { negrita: true, sangria: 3 }
+          );
+          lineaImporte(
+            "Ingresado",
+            fila.ingresado,
+            { sangria: 3 }
+          );
+          lineaImporte(
+            numeroBalance(fila.deuda) < 0
+              ? "Saldo a favor"
+              : "Deuda pendiente",
+            Math.abs(numeroBalance(fila.deuda)),
+            { negrita: true, sangria: 3 }
+          );
+          texto(`Estado: ${fila.estado || "—"}`, {
+            tam: 9,
+            negrita: true,
+            sangria: 3,
+            espacio: 6
+          });
+          separador();
+        });
+
+        tituloSeccion("CONCEPTOS EXTRAORDINARIOS POR TIPO");
+
+        if (!conceptos.length) {
+          texto("No hay conceptos extraordinarios en este balance.");
+        } else {
+          conceptos.forEach(concepto => {
+            const totalConcepto = filas.reduce(
+              (suma, fila) =>
+                suma +
+                numeroBalance(
+                  fila.extras?.[concepto.id]
+                ),
+              0
+            );
+            lineaImporte(
+              concepto.nombre,
+              totalConcepto
+            );
+          });
+        }
+
+        separador();
+        tituloSeccion("OTROS INGRESOS POR TIPO");
+
+        const otrosIngresosPorTipo =
+          acumularCategoria(otrosIngresosDetalle);
+
+        if (!otrosIngresosPorTipo.length) {
+          texto("Sin otros ingresos cobrados en el periodo.");
+        } else {
+          otrosIngresosPorTipo.forEach(registro => {
+            lineaImporte(
+              registro.categoria,
+              registro.total
+            );
+          });
+
+          texto("Detalle de otros ingresos", {
+            tam: 10,
+            negrita: true,
+            espacio: 6
+          });
+          otrosIngresosDetalle.forEach(ingreso => {
+            lineaImporte(
+              `${fechaBonita(ingreso.fecha)} · ${ingreso.categoria || "Otros"} · ${ingreso.concepto || "Ingreso"}`,
+              ingreso.importe,
+              { sangria: 3 }
+            );
+          });
+        }
+
+        separador();
+        tituloSeccion("GASTOS POR TIPO");
+
+        const gastosPorTipo =
+          acumularCategoria(gastosDetalle);
+
+        if (!gastosPorTipo.length) {
+          texto("Sin gastos pagados en el periodo.");
+        } else {
+          gastosPorTipo.forEach(registro => {
+            lineaImporte(
+              registro.categoria,
+              registro.total
+            );
+          });
+
+          texto("Detalle de gastos", {
+            tam: 10,
+            negrita: true,
+            espacio: 6
+          });
+          gastosDetalle.forEach(gasto => {
+            lineaImporte(
+              `${fechaBonita(gasto.fecha)} · ${gasto.categoria || "Otros"} · ${gasto.concepto || "Gasto"}`,
+              gasto.importe,
+              { sangria: 3 }
+            );
+          });
+        }
+
+        separador();
+        tituloSeccion("CIERRE");
+        lineaImporte(
+          "Total que debían pagar los vecinos",
+          balance.totalDebiaPagar
+        );
+        lineaImporte(
+          "Total ingresado por vecinos",
+          balance.totalIngresadoVecinos
+        );
+        lineaImporte(
+          "Otros ingresos",
+          balance.otrosIngresos
+        );
+        lineaImporte(
+          "Total gastos",
+          balance.totalGastos
+        );
+        lineaImporte(
+          "Saldo actual",
+          balance.saldoActual,
+          { negrita: true }
+        );
+
+        if (balance.observaciones) {
+          separador();
+          tituloSeccion("OBSERVACIONES");
+          texto(balance.observaciones, {
+            tam: 9,
+            espacio: 4.5
+          });
+        }
+
+        const totalPaginas =
+          docPdf.getNumberOfPages();
+
+        for (
+          let pagina = 1;
+          pagina <= totalPaginas;
+          pagina++
+        ) {
+          docPdf.setPage(pagina);
+          docPdf.setFont("helvetica", "normal");
+          docPdf.setFontSize(8);
+          docPdf.setTextColor(120);
+          docPdf.text(
+            "Gestión de fincas",
+            margenX,
+            291
+          );
+          docPdf.text(
+            `Página ${pagina} de ${totalPaginas}`,
+            210 - margenX,
+            291,
+            { align: "right" }
+          );
+          docPdf.setTextColor(0);
+        }
+
+        docPdf.save(
+          `Balance_${nombreArchivoSeguro(nombre)}_${balance.fechaCierre || hoyISO()}.pdf`
+        );
+      }
+
       function descargarPDFBalance(
         balance,
         comunidad
       ) {
+        if (
+          Number(balance?.version || 0) >= 2 &&
+          Array.isArray(balance?.filasVecinos)
+        ) {
+          descargarPDFBalanceDetallado(
+            balance,
+            comunidad
+          );
+          return;
+        }
+
         const JsPDF =
           window.jspdf?.jsPDF;
 
@@ -9113,8 +9424,13 @@ function abrirEditorBalance(
           return;
         }
 
+        const balance =
+          balanceAbierto.modo === "editor"
+            ? leerEditorBalance()
+            : balanceAbierto.balance;
+
         descargarPDFBalance(
-          balanceAbierto.balance,
+          balance,
           balanceAbierto.comunidad
         );
       });
@@ -10573,6 +10889,12 @@ window.generarBalanceComunidad =
     >
   </div>
 </div>
+
+                      <button
+                        type="button"
+                        class="btn-principal"
+                        onclick="guardarPresidente('${comunidad.id}')"
+                      >
                         Guardar presidente
                       </button>
                     </div>
