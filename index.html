@@ -840,7 +840,128 @@
     }
 
     .balance-linea:last-child { border-bottom: none; }
+.modal-balance {
+  max-width: min(1180px, 98vw);
+}
 
+.balance-configuracion {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 12px;
+  margin: 12px 0;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.balance-configuracion label {
+  margin-top: 0;
+}
+
+.balance-tabla-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 12px 0;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.balance-tabla {
+  width: 100%;
+  min-width: 1080px;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: white;
+}
+
+.balance-tabla th,
+.balance-tabla td {
+  padding: 8px;
+  border-right: 1px solid var(--borde);
+  border-bottom: 1px solid var(--borde);
+  text-align: right;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.balance-tabla th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.balance-tabla th:first-child,
+.balance-tabla th:nth-child(2),
+.balance-tabla td:first-child,
+.balance-tabla td:nth-child(2) {
+  text-align: left;
+}
+
+.balance-tabla th:last-child,
+.balance-tabla td:last-child {
+  border-right: 0;
+}
+
+.balance-tabla tfoot td {
+  font-weight: bold;
+  background: #f9fafb;
+}
+
+.balance-tabla input[type="number"] {
+  width: 92px;
+  min-width: 82px;
+  padding: 7px;
+  text-align: right;
+}
+
+.balance-tabla .balance-celda-nombre {
+  min-width: 180px;
+  white-space: normal;
+}
+
+.balance-tabla .balance-celda-piso {
+  min-width: 80px;
+}
+
+.balance-bloque {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: white;
+}
+
+.balance-bloque h4 {
+  margin: 0 0 10px;
+}
+
+.balance-aviso {
+  padding: 10px 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  color: #92400e;
+  background: #fef3c7;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.balance-estado-ok {
+  color: var(--verde-ok);
+  font-weight: bold;
+}
+
+.balance-estado-deuda {
+  color: var(--rojo);
+  font-weight: bold;
+}
+
+.balance-estado-favor {
+  color: var(--azul);
+  font-weight: bold;
+}
     .notificacion-card {
       border-bottom: 1px solid var(--borde);
       padding: 12px 0;
@@ -1616,12 +1737,59 @@
 
 <!-- MODAL BALANCE DE COMUNIDAD -->
 <div id="modalBalance" class="modal-fondo oculto">
-  <div class="modal">
+  <div class="modal modal-balance">
     <h2>📊 Balance de comunidad</h2>
+
     <div id="contenidoBalance"></div>
+
     <div class="acciones" style="margin-top:16px;">
-      <button id="descargarBalanceAbierto" class="btn-mini btn-ok" type="button">📄 Descargar PDF</button>
-      <button id="cerrarBalance" class="btn-mini btn-secundario" type="button">Cerrar</button>
+      <button
+        id="anadirConceptoBalance"
+        class="btn-mini btn-editar"
+        type="button"
+      >
+        ➕ Concepto extraordinario
+      </button>
+
+      <button
+        id="guardarBalanceAbierto"
+        class="btn-mini btn-ok"
+        type="button"
+      >
+        💾 Guardar balance
+      </button>
+<button
+  id="anadirConceptoBalance"
+  class="btn-mini btn-editar oculto"
+  type="button"
+  onclick="anadirConceptoBalance()"
+>
+  ➕ Añadir concepto
+</button>
+
+<button
+  id="guardarBalanceAbierto"
+  class="btn-mini btn-ok oculto"
+  type="button"
+  onclick="guardarBalanceAbierto()"
+>
+  💾 Guardar balance
+</button>
+      <button
+        id="descargarBalanceAbierto"
+        class="btn-mini btn-ok"
+        type="button"
+      >
+        📄 Descargar PDF
+      </button>
+
+      <button
+        id="cerrarBalance"
+        class="btn-mini btn-secundario"
+        type="button"
+      >
+        Cerrar
+      </button>
     </div>
   </div>
 </div>
@@ -1945,27 +2113,78 @@
     return `vec_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  function personaContactoHTML(persona = {}, vacio = "Sin datos registrados") {
-    const nombre = String(persona.nombre || "").trim();
-    const telefono = String(persona.telefono || "").trim();
-    const email = String(persona.email || "").trim();
-    const direccion = String(persona.direccion || "").trim();
-    const iban = String(persona.iban || "").trim();
+function personaContactoHTML(
+  persona = {},
+  vacio = "Sin datos registrados"
+) {
+  const nombre =
+    String(persona.nombre || "").trim();
 
-    if (!nombre && !telefono && !email && !direccion && !iban) {
-      return `<div class="texto-ayuda">${vacio}</div>`;
-    }
+  const telefono =
+    String(persona.telefono || "").trim();
 
+  const email =
+    String(persona.email || "").trim();
+
+  const direccion =
+    String(persona.direccion || "").trim();
+
+  const piso =
+    String(persona.piso || "").trim();
+
+  const iban =
+    String(persona.iban || "").trim();
+
+  if (
+    !nombre &&
+    !telefono &&
+    !email &&
+    !direccion &&
+    !piso &&
+    !iban
+  ) {
     return `
-      ${nombre ? `<strong>${esc(nombre)}</strong>` : ""}
-      <div class="contacto-linea">
-        ${telefono ? `📞 <a href="tel:${esc(telefonoHref(telefono))}">${esc(telefono)}</a><br>` : ""}
-        ${email ? `✉️ <a href="mailto:${esc(email)}">${esc(email)}</a><br>` : ""}
-        ${direccion ? `📍 ${esc(direccion)}<br>` : ""}
-        ${iban ? `🏦 IBAN: ${esc(iban)}` : ""}
+      <div class="texto-ayuda">
+        ${vacio}
       </div>
     `;
   }
+
+  return `
+    ${nombre
+      ? `<strong>${esc(nombre)}</strong>`
+      : ""
+    }
+
+    <div class="contacto-linea">
+      ${telefono
+        ? `📞 <a href="tel:${esc(
+            telefonoHref(telefono)
+          )}">${esc(telefono)}</a><br>`
+        : ""
+      }
+
+      ${email
+        ? `✉️ <a href="mailto:${esc(
+            email
+          )}">${esc(email)}</a><br>`
+        : ""
+      }
+
+      ${direccion || piso
+        ? `📍 ${esc(direccion)}${
+            direccion && piso ? " · " : ""
+          }${piso ? esc(piso) : ""}<br>`
+        : ""
+      }
+
+      ${iban
+        ? `🏦 IBAN: ${esc(iban)}`
+        : ""
+      }
+    </div>
+  `;
+}
 
   function normalizarNombre(valor) {
     return String(valor || "").trim().toLocaleLowerCase("es-ES");
@@ -3217,11 +3436,26 @@
         document.getElementById(`presEmail_${comunidadId}`)
           ?.value.trim() || "",
       direccion:
-        document.getElementById(`presDireccion_${comunidadId}`)
-          ?.value.trim() || "",
-      iban:
-        document.getElementById(`presIban_${comunidadId}`)
-          ?.value.trim() || ""
+  document.getElementById(
+    `presDireccion_${comunidadId}`
+  )?.value.trim() || "",
+
+piso:
+  document.getElementById(
+    `presPiso_${comunidadId}`
+  )?.value.trim() || "",
+
+iban:
+  document.getElementById(
+    `presIban_${comunidadId}`
+  )?.value.trim() || "",
+
+cuotaMensual:
+  Number(
+    document.getElementById(
+      `presCuotaMensual_${comunidadId}`
+    )?.value || 0
+  )
     };
 
     if (!presidente.nombre) {
@@ -3329,23 +3563,42 @@
     const emailEl =
       document.getElementById(`vecEmail_${comunidadId}`);
 
-    const direccionEl =
-      document.getElementById(`vecDireccion_${comunidadId}`);
+const direccionEl =
+  document.getElementById(
+    `vecDireccion_${comunidadId}`
+  );
 
-    const ibanEl =
-      document.getElementById(`vecIban_${comunidadId}`);
+const pisoEl =
+  document.getElementById(
+    `vecPiso_${comunidadId}`
+  );
 
-    const editEl =
-      document.getElementById(`vecEditIndex_${comunidadId}`);
+const ibanEl =
+  document.getElementById(
+    `vecIban_${comunidadId}`
+  );
 
-    const vecino = {
-      id: nuevoIdLocal(),
-      nombre: nombreEl?.value.trim() || "",
-      telefono: telefonoEl?.value.trim() || "",
-      email: emailEl?.value.trim() || "",
-      direccion: direccionEl?.value.trim() || "",
-      iban: ibanEl?.value.trim() || ""
-    };
+const cuotaMensualEl =
+  document.getElementById(
+    `vecCuotaMensual_${comunidadId}`
+  );
+
+const editEl =
+  document.getElementById(
+    `vecEditIndex_${comunidadId}`
+  );
+
+const vecino = {
+  id: nuevoIdLocal(),
+  nombre: nombreEl?.value.trim() || "",
+  telefono: telefonoEl?.value.trim() || "",
+  email: emailEl?.value.trim() || "",
+  direccion: direccionEl?.value.trim() || "",
+  piso: pisoEl?.value.trim() || "",
+  iban: ibanEl?.value.trim() || "",
+  cuotaMensual:
+    Number(cuotaMensualEl?.value || 0)
+};
 
     if (!vecino.nombre) {
       return alert("Escribe el nombre del vecino o propietario.");
@@ -3436,13 +3689,22 @@
       `vecEmail_${comunidadId}`
     ).value = vecino.email || "";
 
-    document.getElementById(
-      `vecDireccion_${comunidadId}`
-    ).value = vecino.direccion || "";
+document.getElementById(
+  `vecDireccion_${comunidadId}`
+).value = vecino.direccion || "";
 
-    document.getElementById(
-      `vecIban_${comunidadId}`
-    ).value = vecino.iban || "";
+document.getElementById(
+  `vecPiso_${comunidadId}`
+).value = vecino.piso || "";
+
+document.getElementById(
+  `vecIban_${comunidadId}`
+).value = vecino.iban || "";
+
+document.getElementById(
+  `vecCuotaMensual_${comunidadId}`
+).value =
+  Number(vecino.cuotaMensual || 0) || "";
 
     document.getElementById(
       `vecFormTitulo_${comunidadId}`
@@ -3454,13 +3716,15 @@
   };
 
   window.cancelarEdicionVecino = comunidadId => {
-    const ids = [
-      "vecNombre",
-      "vecTelefono",
-      "vecEmail",
-      "vecDireccion",
-      "vecIban"
-    ];
+ const ids = [
+  "vecNombre",
+  "vecTelefono",
+  "vecEmail",
+  "vecDireccion",
+  "vecPiso",
+  "vecIban",
+  "vecCuotaMensual"
+];
 
     ids.forEach(prefijo => {
       const elemento = document.getElementById(
@@ -6038,225 +6302,1918 @@
           }))
           .sort((a, b) => b.total - a.total);
       }
+function numeroBalance(valor) {
+  const numero = Number(valor || 0);
 
-      function calcularBalanceComunidad(
+  return Number.isFinite(numero)
+    ? Math.round(
+        (numero + Number.EPSILON) * 100
+      ) / 100
+    : 0;
+}
+
+function ultimoDiaMesISO(mes) {
+  const partes = String(mes || "").split("-");
+  const anio = Number(partes[0]);
+  const numeroMes = Number(partes[1]);
+
+  if (!anio || !numeroMes) {
+    return hoyISO();
+  }
+
+  const ultimo = new Date(
+    Date.UTC(anio, numeroMes, 0)
+  );
+
+  return ultimo.toISOString().slice(0, 10);
+}
+
+function mesesPeriodoBalance(inicio, fin) {
+  const desde = new Date(`${inicio}T00:00:00`);
+  const hasta = new Date(`${fin}T00:00:00`);
+
+  if (
+    Number.isNaN(desde.getTime()) ||
+    Number.isNaN(hasta.getTime()) ||
+    desde > hasta
+  ) {
+    return 0;
+  }
+
+  return Math.max(
+    1,
+    (hasta.getFullYear() -
+      desde.getFullYear()) *
+      12 +
+      hasta.getMonth() -
+      desde.getMonth() +
+      1
+  );
+}
+
+function fechaDentroPeriodo(
+  fecha,
+  inicio,
+  fin
+) {
+  const valor =
+    String(fecha || "").slice(0, 10);
+
+  return Boolean(
+    valor &&
+    valor >= inicio &&
+    valor <= fin
+  );
+}
+
+function movimientoDeVecino(
+  movimiento,
+  vecino
+) {
+  if (
+    movimiento.vecinoId &&
+    vecino.id &&
+    String(movimiento.vecinoId) ===
+      String(vecino.id)
+  ) {
+    return true;
+  }
+
+  return Boolean(
+    movimiento.vecinoNombre &&
+    vecino.nombre &&
+    normalizarNombre(
+      movimiento.vecinoNombre
+    ) ===
+      normalizarNombre(vecino.nombre)
+  );
+}
+
+function esCategoriaCuota(categoria) {
+  return normalizarNombre(
+    categoria
+  ).startsWith("cuota");
+}
+
+function esCategoriaAtraso(categoria) {
+  return normalizarNombre(
+    categoria
+  ).startsWith("atras");
+}
+
+function estadoFilaBalance(deuda) {
+  const valor = numeroBalance(deuda);
+
+  if (valor < 0) return "Saldo a favor";
+  if (valor > 0) return "Pendiente";
+
+  return "Pagado";
+}
+  function recalcularBalanceDetalle(balance) {
+  const conceptos = Array.isArray(
+    balance.conceptosExtra
+  )
+    ? balance.conceptosExtra
+    : [];
+
+  const filas = Array.isArray(
+    balance.filasVecinos
+  )
+    ? balance.filasVecinos
+    : [];
+
+  filas.forEach(fila => {
+    fila.cuotaMensual =
+      numeroBalance(fila.cuotaMensual);
+
+    fila.atrasos =
+      numeroBalance(fila.atrasos);
+
+    fila.cuotasPeriodo =
+      numeroBalance(fila.cuotasPeriodo);
+
+    fila.ingresado =
+      numeroBalance(fila.ingresado);
+
+    fila.extras = fila.extras || {};
+
+    const totalExtras = conceptos.reduce(
+      (suma, concepto) =>
+        suma +
+        numeroBalance(
+          fila.extras[concepto.id]
+        ),
+      0
+    );
+
+    fila.totalExtras =
+      numeroBalance(totalExtras);
+
+    fila.totalAPagar = numeroBalance(
+      fila.atrasos +
+      fila.cuotasPeriodo +
+      fila.totalExtras
+    );
+
+    fila.deuda = numeroBalance(
+      fila.totalAPagar - fila.ingresado
+    );
+
+    fila.estado =
+      estadoFilaBalance(fila.deuda);
+  });
+
+  balance.totalDebiaPagar = numeroBalance(
+    filas.reduce(
+      (suma, fila) =>
+        suma + fila.totalAPagar,
+      0
+    )
+  );
+
+  balance.totalIngresadoVecinos =
+    numeroBalance(
+      filas.reduce(
+        (suma, fila) =>
+          suma + fila.ingresado,
+        0
+      )
+    );
+
+  balance.totalDeuda = numeroBalance(
+    filas.reduce(
+      (suma, fila) =>
+        suma + fila.deuda,
+      0
+    )
+  );
+
+  balance.otrosIngresos =
+    numeroBalance(balance.otrosIngresos);
+
+  balance.totalIngresos = numeroBalance(
+    balance.totalIngresadoVecinos +
+    balance.otrosIngresos
+  );
+
+  balance.totalGastos = numeroBalance(
+    (
+      Array.isArray(balance.gastosDetalle)
+        ? balance.gastosDetalle
+        : []
+    ).reduce(
+      (suma, gasto) =>
+        suma +
+        numeroBalance(gasto.importe),
+      0
+    )
+  );
+
+  balance.resultadoPeriodo = numeroBalance(
+    balance.totalIngresos -
+    balance.totalGastos
+  );
+
+  balance.saldoAnterior =
+    numeroBalance(balance.saldoAnterior);
+
+  balance.saldoActual = numeroBalance(
+    balance.saldoAnterior +
+    balance.resultadoPeriodo
+  );
+
+  balance.saldo = balance.saldoActual;
+
+  balance.pendienteCobro = Math.max(
+    0,
+    balance.totalDeuda
+  );
+
+  return balance;
+}
+function calcularBalanceComunidad(
+  comunidadId,
+  opciones = {}
+) {
+  const comunidad =
+    comunidadPorId(comunidadId);
+
+  const mes =
+    document.getElementById(
+      "mesGlobal"
+    )?.value ||
+    hoyISO().slice(0, 7);
+
+  const periodoInicio =
+    opciones.periodoInicio ||
+    `${mes}-01`;
+
+  const periodoFin =
+    opciones.periodoFin ||
+    ultimoDiaMesISO(mes);
+
+  const numeroMeses =
+    mesesPeriodoBalance(
+      periodoInicio,
+      periodoFin
+    );
+
+  const movsComunidad =
+    movimientos.filter(
+      movimiento =>
+        movimiento.comunidadId ===
         comunidadId
-      ) {
-        const movs =
-          movimientos.filter(
-            movimiento =>
-              movimiento.comunidadId ===
-              comunidadId
+    );
+
+  const movsPeriodo =
+    movsComunidad.filter(
+      movimiento =>
+        fechaDentroPeriodo(
+          movimiento.fecha,
+          periodoInicio,
+          periodoFin
+        )
+    );
+
+  const nombresConceptos = new Set(
+    (
+      Array.isArray(
+        opciones.conceptosExtra
+      )
+        ? opciones.conceptosExtra
+        : []
+    )
+      .map(concepto =>
+        String(
+          concepto.nombre || ""
+        ).trim()
+      )
+      .filter(Boolean)
+  );
+
+  movsPeriodo
+    .filter(
+      movimiento =>
+        movimiento.tipo === "Ingreso" &&
+        movimiento.vecinoNombre &&
+        !esCategoriaCuota(
+          movimiento.categoria
+        ) &&
+        !esCategoriaAtraso(
+          movimiento.categoria
+        )
+    )
+    .forEach(movimiento => {
+      const nombre = String(
+        movimiento.categoria ||
+          "Extraordinario"
+      ).trim();
+
+      if (nombre) {
+        nombresConceptos.add(nombre);
+      }
+    });
+
+  const conceptosExtra =
+    [...nombresConceptos].map(
+      (nombre, indice) => {
+        const anterior =
+          (
+            opciones.conceptosExtra ||
+            []
+          ).find(
+            concepto =>
+              concepto.nombre === nombre
           );
-
-        const ingresos =
-          movs.filter(
-            movimiento =>
-              movimiento.tipo === "Ingreso" &&
-              movimiento.estado === "Cobrado"
-          );
-
-        const gastos =
-          movs.filter(
-            movimiento =>
-              movimiento.tipo === "Gasto" &&
-              movimiento.estado === "Pagado"
-          );
-
-        const pendientesCobro =
-          movs.filter(
-            movimiento =>
-              movimiento.tipo === "Ingreso" &&
-              movimiento.estado === "Pendiente"
-          );
-
-        const pendientesPagoMov =
-          movs.filter(
-            movimiento =>
-              movimiento.tipo === "Gasto" &&
-              movimiento.estado === "Pendiente"
-          );
-
-        const factPend =
-          facturas.filter(
-            factura =>
-              factura.comunidadId ===
-                comunidadId &&
-              factura.estado !== "Pagada"
-          );
-
-        const totalIngresos =
-          ingresos.reduce(
-            (suma, movimiento) =>
-              suma +
-              Number(movimiento.importe || 0),
-            0
-          );
-
-        const totalGastos =
-          gastos.reduce(
-            (suma, movimiento) =>
-              suma +
-              Number(movimiento.importe || 0),
-            0
-          );
-
-        const totalPendCobro =
-          pendientesCobro.reduce(
-            (suma, movimiento) =>
-              suma +
-              Number(movimiento.importe || 0),
-            0
-          );
-
-        const totalPendPago =
-          pendientesPagoMov.reduce(
-            (suma, movimiento) =>
-              suma +
-              Number(movimiento.importe || 0),
-            0
-          ) +
-          factPend.reduce(
-            (suma, factura) =>
-              suma +
-              Number(factura.total || 0),
-            0
-          );
-
-        const mesesMap = {};
-
-        movs.forEach(movimiento => {
-          const mes =
-            String(
-              movimiento.fecha || ""
-            ).slice(0, 7);
-
-          if (!/^\d{4}-\d{2}$/.test(mes)) {
-            return;
-          }
-
-          if (!mesesMap[mes]) {
-            mesesMap[mes] = {
-              mes,
-              ingresos: 0,
-              gastos: 0,
-              pendienteCobro: 0,
-              pendientePago: 0
-            };
-          }
-
-          const importe =
-            Number(movimiento.importe || 0);
-
-          if (
-            movimiento.tipo === "Ingreso" &&
-            movimiento.estado === "Cobrado"
-          ) {
-            mesesMap[mes].ingresos += importe;
-          }
-
-          if (
-            movimiento.tipo === "Gasto" &&
-            movimiento.estado === "Pagado"
-          ) {
-            mesesMap[mes].gastos += importe;
-          }
-
-          if (
-            movimiento.tipo === "Ingreso" &&
-            movimiento.estado === "Pendiente"
-          ) {
-            mesesMap[mes].pendienteCobro +=
-              importe;
-          }
-
-          if (
-            movimiento.tipo === "Gasto" &&
-            movimiento.estado === "Pendiente"
-          ) {
-            mesesMap[mes].pendientePago +=
-              importe;
-          }
-        });
-
-        factPend.forEach(factura => {
-          const mes =
-            String(
-              factura.fechaVencimiento ||
-              factura.fechaFactura ||
-              ""
-            ).slice(0, 7);
-
-          if (!/^\d{4}-\d{2}$/.test(mes)) {
-            return;
-          }
-
-          if (!mesesMap[mes]) {
-            mesesMap[mes] = {
-              mes,
-              ingresos: 0,
-              gastos: 0,
-              pendienteCobro: 0,
-              pendientePago: 0
-            };
-          }
-
-          mesesMap[mes].pendientePago +=
-            Number(factura.total || 0);
-        });
-
-        const meses =
-          Object.values(mesesMap)
-            .map(registro => ({
-              ...registro,
-
-              saldo:
-                registro.ingresos -
-                registro.gastos
-            }))
-            .sort((a, b) =>
-              String(b.mes).localeCompare(
-                String(a.mes)
-              )
-            );
 
         return {
           id:
-            `bal_${Date.now()}_${Math.random()
-              .toString(36)
-              .slice(2, 8)}`,
-
-          fechaHora: new Date().toISOString(),
-
-          creadoPor:
-            auth.currentUser?.email || "",
-
-          totalIngresos,
-          totalGastos,
-
-          saldo:
-            totalIngresos - totalGastos,
-
-          pendienteCobro:
-            totalPendCobro,
-
-          pendientePago:
-            totalPendPago,
-
-          categoriasIngreso:
-            acumularCategoria(ingresos),
-
-          categoriasGasto:
-            acumularCategoria(gastos),
-
-          meses
+            anterior?.id ||
+            `extra_${Date.now()}_${indice}`,
+          nombre
         };
       }
+    );
 
+  const vecinos =
+    vecinosVisibles(comunidad).filter(
+      vecino =>
+        !vecino.__presidenteVirtual ||
+        !(
+          Array.isArray(
+            comunidad?.vecinos
+          ) &&
+          comunidad.vecinos.some(
+            registro =>
+              registro.esPresidente ===
+                true ||
+              (
+                vecino.vecinoId &&
+                registro.id ===
+                  vecino.vecinoId
+              )
+          )
+        )
+    );
+
+  const filasVecinos =
+    vecinos.map(vecino => {
+      const ingresosVecino =
+        movsPeriodo.filter(
+          movimiento =>
+            movimiento.tipo ===
+              "Ingreso" &&
+            movimiento.estado ===
+              "Cobrado" &&
+            movimientoDeVecino(
+              movimiento,
+              vecino
+            )
+        );
+
+      const atrasos =
+        movsComunidad
+          .filter(
+            movimiento =>
+              movimiento.tipo ===
+                "Ingreso" &&
+              movimiento.estado ===
+                "Pendiente" &&
+              String(
+                movimiento.fecha || ""
+              ) < periodoInicio &&
+              movimientoDeVecino(
+                movimiento,
+                vecino
+              )
+          )
+          .reduce(
+            (suma, movimiento) =>
+              suma +
+              numeroBalance(
+                movimiento.importe
+              ),
+            0
+          );
+
+      const cuotaMensual =
+        numeroBalance(
+          vecino.cuotaMensual
+        );
+
+      const cuotasRegistradas =
+        movsPeriodo
+          .filter(
+            movimiento =>
+              movimiento.tipo ===
+                "Ingreso" &&
+              esCategoriaCuota(
+                movimiento.categoria
+              ) &&
+              movimientoDeVecino(
+                movimiento,
+                vecino
+              )
+          )
+          .reduce(
+            (suma, movimiento) =>
+              suma +
+              numeroBalance(
+                movimiento.importe
+              ),
+            0
+          );
+
+      const extras = {};
+
+      conceptosExtra.forEach(
+        concepto => {
+          extras[concepto.id] =
+            numeroBalance(
+              movsPeriodo
+                .filter(
+                  movimiento =>
+                    movimiento.tipo ===
+                      "Ingreso" &&
+                    normalizarNombre(
+                      movimiento.categoria
+                    ) ===
+                      normalizarNombre(
+                        concepto.nombre
+                      ) &&
+                    movimientoDeVecino(
+                      movimiento,
+                      vecino
+                    )
+                )
+                .reduce(
+                  (
+                    suma,
+                    movimiento
+                  ) =>
+                    suma +
+                    numeroBalance(
+                      movimiento.importe
+                    ),
+                  0
+                )
+            );
+        }
+      );
+
+      return {
+        vecinoId: vecino.id || "",
+        nombre:
+          vecino.nombre ||
+          "Propietario sin nombre",
+        piso: vecino.piso || "",
+        direccion:
+          vecino.direccion || "",
+        cuotaMensual,
+        atrasos:
+          numeroBalance(atrasos),
+
+        cuotasPeriodo:
+          numeroBalance(
+            cuotaMensual > 0
+              ? cuotaMensual *
+                numeroMeses
+              : cuotasRegistradas
+          ),
+
+        extras,
+
+        ingresado:
+          numeroBalance(
+            ingresosVecino.reduce(
+              (
+                suma,
+                movimiento
+              ) =>
+                suma +
+                numeroBalance(
+                  movimiento.importe
+                ),
+              0
+            )
+          )
+      };
+    });
+
+  const otrosIngresosMov =
+    movsPeriodo.filter(
+      movimiento =>
+        movimiento.tipo ===
+          "Ingreso" &&
+        movimiento.estado ===
+          "Cobrado" &&
+        !vecinos.some(vecino =>
+          movimientoDeVecino(
+            movimiento,
+            vecino
+          )
+        )
+    );
+
+  const gastosDetalle =
+    movsPeriodo
+      .filter(
+        movimiento =>
+          movimiento.tipo ===
+            "Gasto" &&
+          movimiento.estado ===
+            "Pagado"
+      )
+      .map(movimiento => ({
+        id:
+          movimiento.id ||
+          nuevoIdLocal(),
+
+        fecha:
+          movimiento.fecha || "",
+
+        categoria:
+          movimiento.categoria ||
+          "Otros",
+
+        concepto:
+          movimiento.concepto ||
+          movimiento.tercero ||
+          "Gasto",
+
+        importe:
+          numeroBalance(
+            movimiento.importe
+          )
+      }));
+
+  const balanceAnterior =
+    balancesGuardados
+      .filter(
+        balance =>
+          balance.comunidadId ===
+            comunidadId &&
+          balance.saldoActual !==
+            undefined &&
+          String(
+            balance.periodoFin || ""
+          ) < periodoInicio
+      )
+      .sort(
+        (a, b) =>
+          String(
+            b.periodoFin || ""
+          ).localeCompare(
+            String(
+              a.periodoFin || ""
+            )
+          )
+      )[0];
+
+  return recalcularBalanceDetalle({
+    version: 2,
+
+    id:
+      opciones.id ||
+      `bal_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 8)}`,
+
+    fechaHora:
+      opciones.fechaHora ||
+      new Date().toISOString(),
+
+    creadoPor:
+      auth.currentUser?.email || "",
+
+    periodoInicio,
+    periodoFin,
+
+    fechaCierre:
+      opciones.fechaCierre ||
+      periodoFin,
+
+    fechaSaldoAnterior:
+      opciones.fechaSaldoAnterior ||
+      balanceAnterior?.fechaCierre ||
+      "",
+
+    saldoAnterior:
+      opciones.saldoAnterior !==
+      undefined
+        ? opciones.saldoAnterior
+        : balanceAnterior
+            ?.saldoActual || 0,
+
+    conceptosExtra,
+    filasVecinos,
+
+    otrosIngresos:
+      otrosIngresosMov.reduce(
+        (suma, movimiento) =>
+          suma +
+          numeroBalance(
+            movimiento.importe
+          ),
+        0
+      ),
+
+    otrosIngresosDetalle:
+      otrosIngresosMov.map(
+        movimiento => ({
+          fecha:
+            movimiento.fecha || "",
+
+          categoria:
+            movimiento.categoria ||
+            "Otros",
+
+          concepto:
+            movimiento.concepto ||
+            movimiento.tercero ||
+            "Ingreso",
+
+          importe:
+            numeroBalance(
+              movimiento.importe
+            )
+        })
+      ),
+
+    gastosDetalle,
+
+    observaciones:
+      opciones.observaciones || ""
+  });
+}
+  function claseEstadoBalance(deuda) {
+  const valor = numeroBalance(deuda);
+
+  if (valor < 0) {
+    return "balance-estado-favor";
+  }
+
+  if (valor > 0) {
+    return "balance-estado-deuda";
+  }
+
+  return "balance-estado-ok";
+}
+
+function balanceDetalleHTML(
+  balance,
+  nombre = ""
+) {
+  recalcularBalanceDetalle(balance);
+
+  const conceptos =
+    balance.conceptosExtra || [];
+
+  const filas =
+    balance.filasVecinos || [];
+
+  const gastos =
+    balance.gastosDetalle || [];
+
+  return `
+    ${nombre
+      ? `<h3>${esc(nombre)}</h3>`
+      : ""
+    }
+
+    <div class="item-info">
+      Periodo:
+      ${fechaBonita(balance.periodoInicio)}
+      a
+      ${fechaBonita(balance.periodoFin)}
+
+      · Cierre:
+      ${fechaBonita(balance.fechaCierre)}
+
+      ${balance.creadoPor
+        ? ` · ${esc(balance.creadoPor)}`
+        : ""
+      }
+    </div>
+
+    <div class="balance-tabla-wrap">
+      <table class="balance-tabla">
+        <thead>
+          <tr>
+            <th>Propietario</th>
+            <th>Piso</th>
+            <th>Cuota mensual</th>
+            <th>Atrasos</th>
+            <th>Cuotas periodo</th>
+
+            ${conceptos.map(
+              concepto =>
+                `<th>${esc(
+                  concepto.nombre
+                )}</th>`
+            ).join("")}
+
+            <th>Total a pagar</th>
+            <th>Ingresado</th>
+            <th>Deuda / favor</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${filas.length
+            ? filas.map(fila => `
+                <tr>
+                  <td class="balance-celda-nombre">
+                    ${esc(fila.nombre)}
+                  </td>
+
+                  <td>
+                    ${esc(fila.piso || "—")}
+                  </td>
+
+                  <td>
+                    ${euro(fila.cuotaMensual)}
+                  </td>
+
+                  <td>
+                    ${euro(fila.atrasos)}
+                  </td>
+
+                  <td>
+                    ${euro(fila.cuotasPeriodo)}
+                  </td>
+
+                  ${conceptos.map(
+                    concepto => `
+                      <td>
+                        ${euro(
+                          fila.extras?.[
+                            concepto.id
+                          ]
+                        )}
+                      </td>
+                    `
+                  ).join("")}
+
+                  <td>
+                    <strong>
+                      ${euro(fila.totalAPagar)}
+                    </strong>
+                  </td>
+
+                  <td>
+                    ${euro(fila.ingresado)}
+                  </td>
+
+                  <td class="${
+                    claseEstadoBalance(
+                      fila.deuda
+                    )
+                  }">
+                    ${euro(fila.deuda)}
+                  </td>
+
+                  <td class="${
+                    claseEstadoBalance(
+                      fila.deuda
+                    )
+                  }">
+                    ${esc(fila.estado)}
+                  </td>
+                </tr>
+              `).join("")
+            : `
+              <tr>
+                <td colspan="10">
+                  No hay vecinos registrados.
+                </td>
+              </tr>
+            `
+          }
+        </tbody>
+
+        <tfoot>
+          <tr>
+            <td colspan="${
+              5 + conceptos.length
+            }">
+              TOTALES
+            </td>
+
+            <td>
+              ${euro(
+                balance.totalDebiaPagar
+              )}
+            </td>
+
+            <td>
+              ${euro(
+                balance.totalIngresadoVecinos
+              )}
+            </td>
+
+            <td>
+              ${euro(balance.totalDeuda)}
+            </td>
+
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="balance-bloque">
+      <h4>Gastos del periodo</h4>
+
+      ${gastos.length
+        ? gastos.map(gasto => `
+            <div class="balance-linea">
+              ${fechaBonita(gasto.fecha)}
+              · ${esc(gasto.categoria)}
+              · ${esc(gasto.concepto)}
+
+              <strong
+                style="float:right"
+                class="negativo"
+              >
+                ${euroMenos(gasto.importe)}
+              </strong>
+            </div>
+          `).join("")
+        : `
+          <div class="texto-ayuda">
+            Sin gastos pagados en el periodo.
+          </div>
+        `
+      }
+    </div>
+
+    <div class="balance-resumen">
+      <div>
+        <small>Total ingresos</small>
+
+        <strong class="positivo">
+          ${euroMas(balance.totalIngresos)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Total gastos</small>
+
+        <strong class="negativo">
+          ${euroMenos(balance.totalGastos)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Resultado del periodo</small>
+
+        <strong class="${
+          balance.resultadoPeriodo >= 0
+            ? "positivo"
+            : "negativo"
+        }">
+          ${euro(balance.resultadoPeriodo)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Saldo anterior</small>
+
+        <strong>
+          ${euro(balance.saldoAnterior)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Saldo actual</small>
+
+        <strong class="${
+          balance.saldoActual >= 0
+            ? "positivo"
+            : "negativo"
+        }">
+          ${euro(balance.saldoActual)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Deuda de vecinos</small>
+
+        <strong class="pendiente">
+          ${euro(balance.totalDeuda)}
+        </strong>
+      </div>
+    </div>
+
+    ${balance.observaciones
+      ? `
+        <div class="balance-bloque">
+          <h4>Observaciones</h4>
+
+          <div class="item-info">
+            ${esc(
+              balance.observaciones
+            ).replace(/\n/g, "<br>")}
+          </div>
+        </div>
+      `
+      : ""
+    }
+  `;
+}
+  function balanceEditorHTML(
+  balance,
+  comunidad
+) {
+  recalcularBalanceDetalle(balance);
+
+  const conceptos =
+    balance.conceptosExtra || [];
+
+  const filas =
+    balance.filasVecinos || [];
+
+  const gastos =
+    balance.gastosDetalle || [];
+
+  return `
+    <h3>
+      ${esc(
+        comunidad?.nombre || "Comunidad"
+      )}
+    </h3>
+
+    <div class="balance-aviso">
+      Revisa las cantidades antes de guardar.
+      Las cuotas, atrasos, cobros y gastos se
+      cargan desde los datos registrados, pero
+      puedes corregir los importes de cada vecino.
+    </div>
+
+    <div class="balance-configuracion">
+      <div>
+        <label>Inicio del periodo</label>
+
+        <input
+          id="balPeriodoInicio"
+          type="date"
+          value="${esc(balance.periodoInicio)}"
+        >
+      </div>
+
+      <div>
+        <label>Fin del periodo</label>
+
+        <input
+          id="balPeriodoFin"
+          type="date"
+          value="${esc(balance.periodoFin)}"
+        >
+      </div>
+
+      <div>
+        <label>Fecha de cierre</label>
+
+        <input
+          id="balFechaCierre"
+          type="date"
+          value="${esc(balance.fechaCierre)}"
+        >
+      </div>
+
+      <div style="display:flex;align-items:end;">
+        <button
+          type="button"
+          class="btn-mini btn-editar"
+          onclick="recargarPeriodoBalance()"
+        >
+          🔄 Cargar datos del periodo
+        </button>
+      </div>
+
+      <div>
+        <label>Saldo anterior (€)</label>
+
+        <input
+          id="balSaldoAnterior"
+          type="number"
+          step="0.01"
+          value="${
+            numeroBalance(
+              balance.saldoAnterior
+            )
+          }"
+          oninput="actualizarTotalesEditorBalance()"
+        >
+      </div>
+
+      <div>
+        <label>Fecha del saldo anterior</label>
+
+        <input
+          id="balFechaSaldoAnterior"
+          type="date"
+          value="${esc(
+            balance.fechaSaldoAnterior || ""
+          )}"
+        >
+      </div>
+    </div>
+
+    <div class="balance-tabla-wrap">
+      <table class="balance-tabla">
+        <thead>
+          <tr>
+            <th>Propietario</th>
+            <th>Piso</th>
+            <th>Cuota mensual</th>
+            <th>Atrasos</th>
+            <th>Cuotas periodo</th>
+
+            ${conceptos.map(
+              (concepto, indice) => `
+                <th>
+                  ${esc(concepto.nombre)}
+
+                  <button
+                    type="button"
+                    class="btn-mini btn-borrar"
+                    style="margin-left:4px;padding:3px 6px"
+                    onclick="eliminarConceptoBalance(${indice})"
+                  >
+                    ×
+                  </button>
+                </th>
+              `
+            ).join("")}
+
+            <th>Total a pagar</th>
+            <th>Ingresado</th>
+            <th>Deuda / favor</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${filas.length
+            ? filas.map(
+                (fila, indiceFila) => `
+                  <tr>
+                    <td class="balance-celda-nombre">
+                      ${esc(fila.nombre)}
+                    </td>
+
+                    <td class="balance-celda-piso">
+                      ${esc(fila.piso || "—")}
+                    </td>
+
+                    <td>
+                      <input
+                        type="number"
+                        step="0.01"
+                        data-bal-fila="${indiceFila}"
+                        data-bal-campo="cuotaMensual"
+                        value="${
+                          numeroBalance(
+                            fila.cuotaMensual
+                          )
+                        }"
+                        oninput="actualizarTotalesEditorBalance()"
+                      >
+                    </td>
+
+                    <td>
+                      <input
+                        type="number"
+                        step="0.01"
+                        data-bal-fila="${indiceFila}"
+                        data-bal-campo="atrasos"
+                        value="${
+                          numeroBalance(
+                            fila.atrasos
+                          )
+                        }"
+                        oninput="actualizarTotalesEditorBalance()"
+                      >
+                    </td>
+
+                    <td>
+                      <input
+                        type="number"
+                        step="0.01"
+                        data-bal-fila="${indiceFila}"
+                        data-bal-campo="cuotasPeriodo"
+                        value="${
+                          numeroBalance(
+                            fila.cuotasPeriodo
+                          )
+                        }"
+                        oninput="actualizarTotalesEditorBalance()"
+                      >
+                    </td>
+
+                    ${conceptos.map(
+                      (
+                        concepto,
+                        indiceConcepto
+                      ) => `
+                        <td>
+                          <input
+                            type="number"
+                            step="0.01"
+                            data-bal-fila="${indiceFila}"
+                            data-bal-extra="${indiceConcepto}"
+                            value="${
+                              numeroBalance(
+                                fila.extras?.[
+                                  concepto.id
+                                ]
+                              )
+                            }"
+                            oninput="actualizarTotalesEditorBalance()"
+                          >
+                        </td>
+                      `
+                    ).join("")}
+
+                    <td>
+                      <strong
+                        id="balFilaTotal_${indiceFila}"
+                      >
+                        ${euro(fila.totalAPagar)}
+                      </strong>
+                    </td>
+
+                    <td>
+                      <input
+                        type="number"
+                        step="0.01"
+                        data-bal-fila="${indiceFila}"
+                        data-bal-campo="ingresado"
+                        value="${
+                          numeroBalance(
+                            fila.ingresado
+                          )
+                        }"
+                        oninput="actualizarTotalesEditorBalance()"
+                      >
+                    </td>
+
+                    <td
+                      id="balFilaDeuda_${indiceFila}"
+                      class="${
+                        claseEstadoBalance(
+                          fila.deuda
+                        )
+                      }"
+                    >
+                      ${euro(fila.deuda)}
+                    </td>
+
+                    <td
+                      id="balFilaEstado_${indiceFila}"
+                      class="${
+                        claseEstadoBalance(
+                          fila.deuda
+                        )
+                      }"
+                    >
+                      ${esc(fila.estado)}
+                    </td>
+                  </tr>
+                `
+              ).join("")
+            : `
+              <tr>
+                <td colspan="10">
+                  Añade primero los vecinos
+                  de la comunidad.
+                </td>
+              </tr>
+            `
+          }
+        </tbody>
+
+        <tfoot>
+          <tr>
+            <td colspan="${
+              5 + conceptos.length
+            }">
+              TOTALES
+            </td>
+
+            <td id="balTotalDebia">
+              ${euro(balance.totalDebiaPagar)}
+            </td>
+
+            <td id="balTotalIngresadoVecinos">
+              ${euro(
+                balance.totalIngresadoVecinos
+              )}
+            </td>
+
+            <td id="balTotalDeuda">
+              ${euro(balance.totalDeuda)}
+            </td>
+
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="balance-bloque">
+      <h4>Otros ingresos de la comunidad</h4>
+
+      ${(balance.otrosIngresosDetalle || [])
+        .length
+          ? balance.otrosIngresosDetalle.map(
+              ingreso => `
+                <div class="balance-linea">
+                  ${fechaBonita(ingreso.fecha)}
+                  · ${esc(ingreso.categoria)}
+                  · ${esc(ingreso.concepto)}
+
+                  <strong
+                    style="float:right"
+                    class="positivo"
+                  >
+                    ${euroMas(ingreso.importe)}
+                  </strong>
+                </div>
+              `
+            ).join("")
+          : `
+            <div class="texto-ayuda">
+              Sin otros ingresos cobrados
+              en el periodo.
+            </div>
+          `
+      }
+    </div>
+
+    <div class="balance-bloque">
+      <h4>Gastos desglosados</h4>
+
+      ${gastos.length
+        ? gastos.map(gasto => `
+            <div class="balance-linea">
+              ${fechaBonita(gasto.fecha)}
+              · ${esc(gasto.categoria)}
+              · ${esc(gasto.concepto)}
+
+              <strong
+                style="float:right"
+                class="negativo"
+              >
+                ${euroMenos(gasto.importe)}
+              </strong>
+            </div>
+          `).join("")
+        : `
+          <div class="texto-ayuda">
+            Sin gastos pagados en el periodo.
+          </div>
+        `
+      }
+    </div>
+
+    <div class="balance-resumen">
+      <div>
+        <small>Total ingresos</small>
+
+        <strong
+          id="balResumenIngresos"
+          class="positivo"
+        >
+          ${euroMas(balance.totalIngresos)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Total gastos</small>
+
+        <strong
+          id="balResumenGastos"
+          class="negativo"
+        >
+          ${euroMenos(balance.totalGastos)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Resultado periodo</small>
+
+        <strong id="balResumenResultado">
+          ${euro(balance.resultadoPeriodo)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Saldo anterior</small>
+
+        <strong id="balResumenSaldoAnterior">
+          ${euro(balance.saldoAnterior)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Saldo actual</small>
+
+        <strong id="balResumenSaldoActual">
+          ${euro(balance.saldoActual)}
+        </strong>
+      </div>
+
+      <div>
+        <small>Deuda vecinos</small>
+
+        <strong
+          id="balResumenDeuda"
+          class="pendiente"
+        >
+          ${euro(balance.totalDeuda)}
+        </strong>
+      </div>
+    </div>
+
+    <label>Observaciones e incidencias</label>
+
+    <textarea
+      id="balObservaciones"
+      placeholder="Pagos pendientes, acuerdos, incidencias, aclaraciones..."
+    >${esc(
+      balance.observaciones || ""
+    )}</textarea>
+  `;
+}
+  function leerEditorBalance() {
+  const balance =
+    balanceAbierto?.balance;
+
+  if (!balance) return null;
+
+  const periodoInicio =
+    document.getElementById(
+      "balPeriodoInicio"
+    );
+
+  const periodoFin =
+    document.getElementById(
+      "balPeriodoFin"
+    );
+
+  const fechaCierre =
+    document.getElementById(
+      "balFechaCierre"
+    );
+
+  const saldoAnterior =
+    document.getElementById(
+      "balSaldoAnterior"
+    );
+
+  const fechaSaldoAnterior =
+    document.getElementById(
+      "balFechaSaldoAnterior"
+    );
+
+  const observaciones =
+    document.getElementById(
+      "balObservaciones"
+    );
+
+  if (periodoInicio?.value) {
+    balance.periodoInicio =
+      periodoInicio.value;
+  }
+
+  if (periodoFin?.value) {
+    balance.periodoFin =
+      periodoFin.value;
+  }
+
+  if (fechaCierre?.value) {
+    balance.fechaCierre =
+      fechaCierre.value;
+  }
+
+  balance.saldoAnterior =
+    numeroBalance(
+      saldoAnterior?.value
+    );
+
+  balance.fechaSaldoAnterior =
+    fechaSaldoAnterior?.value || "";
+
+  balance.observaciones =
+    observaciones?.value.trim() || "";
+
+  const conceptos =
+    balance.conceptosExtra || [];
+
+  document
+    .querySelectorAll("[data-bal-fila]")
+    .forEach(input => {
+      const indiceFila =
+        Number(input.dataset.balFila);
+
+      const fila =
+        balance.filasVecinos?.[
+          indiceFila
+        ];
+
+      if (!fila) return;
+
+      if (
+        input.dataset.balExtra !==
+        undefined
+      ) {
+        const indiceExtra =
+          Number(input.dataset.balExtra);
+
+        const concepto =
+          conceptos[indiceExtra];
+
+        if (!concepto) return;
+
+        fila.extras =
+          fila.extras || {};
+
+        fila.extras[concepto.id] =
+          numeroBalance(input.value);
+
+        return;
+      }
+
+      const campo =
+        input.dataset.balCampo;
+
+      if (campo) {
+        fila[campo] =
+          numeroBalance(input.value);
+      }
+    });
+
+  return recalcularBalanceDetalle(
+    balance
+  );
+}
+
+function pintarTotalesEditorBalance(
+  balance
+) {
+  balance.filasVecinos.forEach(
+    (fila, indice) => {
+      const totalEl =
+        document.getElementById(
+          `balFilaTotal_${indice}`
+        );
+
+      const deudaEl =
+        document.getElementById(
+          `balFilaDeuda_${indice}`
+        );
+
+      const estadoEl =
+        document.getElementById(
+          `balFilaEstado_${indice}`
+        );
+
+      if (totalEl) {
+        totalEl.textContent =
+          euro(fila.totalAPagar);
+      }
+
+      if (deudaEl) {
+        deudaEl.textContent =
+          euro(fila.deuda);
+
+        deudaEl.className =
+          claseEstadoBalance(
+            fila.deuda
+          );
+      }
+
+      if (estadoEl) {
+        estadoEl.textContent =
+          fila.estado;
+
+        estadoEl.className =
+          claseEstadoBalance(
+            fila.deuda
+          );
+      }
+    }
+  );
+
+  const valores = {
+    balTotalDebia:
+      euro(balance.totalDebiaPagar),
+
+    balTotalIngresadoVecinos:
+      euro(
+        balance.totalIngresadoVecinos
+      ),
+
+    balTotalDeuda:
+      euro(balance.totalDeuda),
+
+    balResumenIngresos:
+      euroMas(balance.totalIngresos),
+
+    balResumenGastos:
+      euroMenos(balance.totalGastos),
+
+    balResumenResultado:
+      euro(balance.resultadoPeriodo),
+
+    balResumenSaldoAnterior:
+      euro(balance.saldoAnterior),
+
+    balResumenSaldoActual:
+      euro(balance.saldoActual),
+
+    balResumenDeuda:
+      euro(balance.totalDeuda)
+  };
+
+  Object.entries(valores).forEach(
+    ([id, valor]) => {
+      const elemento =
+        document.getElementById(id);
+
+      if (elemento) {
+        elemento.textContent = valor;
+      }
+    }
+  );
+
+  const resultadoEl =
+    document.getElementById(
+      "balResumenResultado"
+    );
+
+  if (resultadoEl) {
+    resultadoEl.className =
+      balance.resultadoPeriodo >= 0
+        ? "positivo"
+        : "negativo";
+  }
+
+  const saldoActualEl =
+    document.getElementById(
+      "balResumenSaldoActual"
+    );
+
+  if (saldoActualEl) {
+    saldoActualEl.className =
+      balance.saldoActual >= 0
+        ? "positivo"
+        : "negativo";
+  }
+
+  const deudaResumenEl =
+    document.getElementById(
+      "balResumenDeuda"
+    );
+
+  if (deudaResumenEl) {
+    deudaResumenEl.className =
+      claseEstadoBalance(
+        balance.totalDeuda
+      );
+  }
+}
+
+function actualizarTotalesEditorBalance() {
+  const balance =
+    leerEditorBalance();
+
+  if (!balance) return;
+
+  pintarTotalesEditorBalance(
+    balance
+  );
+}
+
+window.actualizarTotalesEditorBalance =
+  actualizarTotalesEditorBalance;
+  function recargarPeriodoBalance() {
+  const balanceActual =
+    leerEditorBalance();
+
+  const comunidadId =
+    balanceAbierto?.comunidadId;
+
+  if (!balanceActual || !comunidadId) {
+    return;
+  }
+
+  const periodoInicio =
+    document.getElementById(
+      "balPeriodoInicio"
+    )?.value;
+
+  const periodoFin =
+    document.getElementById(
+      "balPeriodoFin"
+    )?.value;
+
+  if (
+    !periodoInicio ||
+    !periodoFin ||
+    periodoInicio > periodoFin
+  ) {
+    alert(
+      "Revisa las fechas del periodo."
+    );
+
+    return;
+  }
+
+  const nuevoBalance =
+    calcularBalanceComunidad(
+      comunidadId,
+      {
+        id: balanceActual.id,
+
+        fechaHora:
+          balanceActual.fechaHora,
+
+        periodoInicio,
+        periodoFin,
+
+        fechaCierre:
+          document.getElementById(
+            "balFechaCierre"
+          )?.value || periodoFin,
+
+        conceptosExtra:
+          balanceActual.conceptosExtra,
+
+        observaciones:
+          balanceActual.observaciones
+      }
+    );
+
+  balanceAbierto.balance =
+    nuevoBalance;
+
+  const comunidad =
+    comunidadPorId(comunidadId);
+
+  document.getElementById(
+    "contenidoBalance"
+  ).innerHTML =
+    balanceEditorHTML(
+      nuevoBalance,
+      comunidad
+    );
+}
+
+window.recargarPeriodoBalance =
+  recargarPeriodoBalance;
+  function repintarEditorBalance() {
+  const comunidadId =
+    balanceAbierto?.comunidadId;
+
+  const balance =
+    balanceAbierto?.balance;
+
+  if (!comunidadId || !balance) {
+    return;
+  }
+
+  const comunidad =
+    comunidadPorId(comunidadId);
+
+  document.getElementById(
+    "contenidoBalance"
+  ).innerHTML =
+    balanceEditorHTML(
+      balance,
+      comunidad
+    );
+}
+
+function anadirConceptoBalance() {
+  const balance =
+    leerEditorBalance();
+
+  if (!balance) return;
+
+  const nombre = prompt(
+    "Nombre del concepto extraordinario:",
+    "Derrama"
+  )?.trim();
+
+  if (!nombre) return;
+
+  const yaExiste =
+    balance.conceptosExtra.some(
+      concepto =>
+        normalizarNombre(
+          concepto.nombre
+        ) === normalizarNombre(nombre)
+    );
+
+  if (yaExiste) {
+    alert(
+      "Ya existe un concepto con ese nombre."
+    );
+
+    return;
+  }
+
+  const concepto = {
+    id:
+      `extra_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 7)}`,
+
+    nombre
+  };
+
+  balance.conceptosExtra.push(
+    concepto
+  );
+
+  balance.filasVecinos.forEach(
+    fila => {
+      fila.extras =
+        fila.extras || {};
+
+      fila.extras[concepto.id] = 0;
+    }
+  );
+
+  recalcularBalanceDetalle(balance);
+  repintarEditorBalance();
+}
+
+function eliminarConceptoBalance(indice) {
+  const balance =
+    leerEditorBalance();
+
+  if (!balance) return;
+
+  const concepto =
+    balance.conceptosExtra?.[indice];
+
+  if (!concepto) return;
+
+  const confirmar = confirm(
+    `¿Eliminar el concepto "${concepto.nombre}" del balance?`
+  );
+
+  if (!confirmar) return;
+
+  balance.conceptosExtra.splice(
+    indice,
+    1
+  );
+
+  balance.filasVecinos.forEach(
+    fila => {
+      if (fila.extras) {
+        delete fila.extras[concepto.id];
+      }
+    }
+  );
+
+  recalcularBalanceDetalle(balance);
+  repintarEditorBalance();
+}
+
+window.anadirConceptoBalance =
+  anadirConceptoBalance;
+
+window.eliminarConceptoBalance =
+  eliminarConceptoBalance;
       function balanceHTML(
         balance,
         nombre = ""
       ) {
+        function repintarEditorBalance() {
+  const comunidadId =
+    balanceAbierto?.comunidadId;
+
+  const balance =
+    balanceAbierto?.balance;
+
+  if (!comunidadId || !balance) {
+    return;
+  }
+
+  const comunidad =
+    comunidadPorId(comunidadId);
+
+  document.getElementById(
+    "contenidoBalance"
+  ).innerHTML =
+    balanceEditorHTML(
+      balance,
+      comunidad
+    );
+}
+
+function anadirConceptoBalance() {
+  const balance =
+    leerEditorBalance();
+
+  if (!balance) return;
+
+  const nombre = prompt(
+    "Nombre del concepto extraordinario:",
+    "Derrama"
+  )?.trim();
+
+  if (!nombre) return;
+
+  const yaExiste =
+    balance.conceptosExtra.some(
+      concepto =>
+        normalizarNombre(
+          concepto.nombre
+        ) === normalizarNombre(nombre)
+    );
+
+  if (yaExiste) {
+    alert(
+      "Ya existe un concepto con ese nombre."
+    );
+
+    return;
+  }
+
+  const concepto = {
+    id:
+      `extra_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 7)}`,
+
+    nombre
+  };
+
+  balance.conceptosExtra.push(
+    concepto
+  );
+
+  balance.filasVecinos.forEach(
+    fila => {
+      fila.extras =
+        fila.extras || {};
+
+      fila.extras[concepto.id] = 0;
+    }
+  );
+
+  recalcularBalanceDetalle(balance);
+  repintarEditorBalance();
+}
+
+function eliminarConceptoBalance(indice) {
+  const balance =
+    leerEditorBalance();
+
+  if (!balance) return;
+
+  const concepto =
+    balance.conceptosExtra?.[indice];
+
+  if (!concepto) return;
+
+  const confirmar = confirm(
+    `¿Eliminar el concepto "${concepto.nombre}" del balance?`
+  );
+
+  if (!confirmar) return;
+
+  balance.conceptosExtra.splice(
+    indice,
+    1
+  );
+
+  balance.filasVecinos.forEach(
+    fila => {
+      if (fila.extras) {
+        delete fila.extras[concepto.id];
+      }
+    }
+  );
+
+  recalcularBalanceDetalle(balance);
+  repintarEditorBalance();
+}
+
+window.anadirConceptoBalance =
+  anadirConceptoBalance;
+
+window.eliminarConceptoBalance =
+  eliminarConceptoBalance;
         const catIngresos =
           Array.isArray(
             balance.categoriasIngreso
@@ -6533,26 +8490,70 @@
 
       let balanceAbierto = null;
 
-      function abrirBalance(
-        balance,
-        comunidad
-      ) {
-        balanceAbierto = {
-          balance,
-          comunidad
-        };
+function abrirBalance(
+  balance,
+  comunidad
+) {
+  balanceAbierto = {
+    balance,
+    comunidad,
+    comunidadId:
+      comunidad?.id ||
+      balance?.comunidadId ||
+      "",
+    modo: "consulta"
+  };
 
-        document.getElementById(
-          "contenidoBalance"
-        ).innerHTML = balanceHTML(
-          balance,
-          comunidad?.nombre || ""
-        );
+  document.getElementById(
+    "contenidoBalance"
+  ).innerHTML = balanceHTML(
+    balance,
+    comunidad?.nombre || ""
+  );
 
-        document.getElementById(
-          "modalBalance"
-        ).classList.remove("oculto");
-      }
+  document.getElementById(
+    "anadirConceptoBalance"
+  )?.classList.add("oculto");
+
+  document.getElementById(
+    "guardarBalanceAbierto"
+  )?.classList.add("oculto");
+
+  document.getElementById(
+    "modalBalance"
+  ).classList.remove("oculto");
+}
+
+function abrirEditorBalance(
+  balance,
+  comunidad
+) {
+  balanceAbierto = {
+    balance,
+    comunidad,
+    comunidadId: comunidad?.id || "",
+    modo: "editor"
+  };
+
+  document.getElementById(
+    "contenidoBalance"
+  ).innerHTML = balanceEditorHTML(
+    balance,
+    comunidad
+  );
+
+  document.getElementById(
+    "anadirConceptoBalance"
+  )?.classList.remove("oculto");
+
+  document.getElementById(
+    "guardarBalanceAbierto"
+  )?.classList.remove("oculto");
+
+  document.getElementById(
+    "modalBalance"
+  ).classList.remove("oculto");
+}
 
       function nombreArchivoSeguro(valor) {
         return String(valor || "balance")
@@ -7127,81 +9128,181 @@
 
         balanceAbierto = null;
       });
+async function guardarBalanceAbierto() {
+  const balance =
+    leerEditorBalance();
 
-      window.generarBalanceComunidad =
-        async comunidadId => {
-          const comunidad =
-            comunidadPorId(comunidadId);
+  const comunidadId =
+    balanceAbierto?.comunidadId;
 
-          if (!comunidad) return;
+  const comunidad =
+    comunidadPorId(comunidadId);
 
-          const balance =
-            calcularBalanceComunidad(
-              comunidadId
-            );
+  if (
+    !balance ||
+    !comunidadId ||
+    !comunidad
+  ) {
+    alert(
+      "No se pudo identificar el balance."
+    );
 
-          try {
-            await setDoc(
-              doc(
-                db,
-                "balances",
-                balance.id
-              ),
-              {
-                ...balance,
-                comunidadId,
+    return;
+  }
 
-                comunidadNombre:
-                  comunidad.nombre || "",
+  if (
+    !balance.periodoInicio ||
+    !balance.periodoFin ||
+    balance.periodoInicio >
+      balance.periodoFin
+  ) {
+    alert(
+      "Revisa las fechas del periodo."
+    );
 
-                guardadoEn:
-                  serverTimestamp()
-              }
-            );
+    return;
+  }
 
-            await registrarActividad(
-              "Balance generado",
-              "balances",
-              nombreComunidad(comunidadId),
-              comunidadId
-            );
+  balance.version = 2;
 
-            abrirBalance(
-              balance,
-              comunidad
-            );
-          } catch (error) {
-            console.error(error);
+  balance.fechaCierre =
+    balance.fechaCierre ||
+    balance.periodoFin;
 
-            alert(
-              "No se pudo guardar el balance de la comunidad."
-            );
-          }
-        };
+  balance.creadoPor =
+    balance.creadoPor ||
+    auth.currentUser?.email ||
+    "";
 
-      window.verBalanceHistorico =
-        (comunidadId, balanceId) => {
-          const comunidad =
-            comunidadPorId(comunidadId);
+  balance.comunidadId =
+    comunidadId;
 
-          const balance =
-            balancesDeComunidad(comunidad)
-              .find(
-                registro =>
-                  registro.id === balanceId
-              );
+  balance.comunidadNombre =
+    comunidad.nombre || "";
 
-          if (!balance) {
-            return alert(
-              "No se encontró este balance histórico."
-            );
-          }
+  recalcularBalanceDetalle(balance);
 
-          abrirBalance(
-            balance,
-            comunidad
-          );
-        };
+  const boton =
+    document.getElementById(
+      "guardarBalanceAbierto"
+    );
+
+  const textoAnterior =
+    boton?.textContent || "";
+
+  if (boton) {
+    boton.disabled = true;
+    boton.textContent = "Guardando...";
+  }
+
+  try {
+    await setDoc(
+      doc(
+        db,
+        "balances",
+        balance.id
+      ),
+      {
+        ...balance,
+        guardadoEn:
+          serverTimestamp()
+      }
+    );
+
+    await registrarActividad(
+      "Balance guardado",
+      "balances",
+      nombreComunidad(comunidadId),
+      balance.id
+    );
+
+    alert(
+      "Balance guardado correctamente."
+    );
+
+    abrirBalance(
+      balance,
+      comunidad
+    );
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      "No se pudo guardar el balance de la comunidad."
+    );
+  } finally {
+    if (boton) {
+      boton.disabled = false;
+      boton.textContent =
+        textoAnterior ||
+        "Guardar balance";
+    }
+  }
+}
+
+window.guardarBalanceAbierto =
+  guardarBalanceAbierto;
+
+window.generarBalanceComunidad =
+  comunidadId => {
+    const comunidad =
+      comunidadPorId(comunidadId);
+
+    if (!comunidad) {
+      alert(
+        "No se encontró la comunidad."
+      );
+
+      return;
+    }
+
+    const balance =
+      calcularBalanceComunidad(
+        comunidadId
+      );
+
+    abrirEditorBalance(
+      balance,
+      comunidad
+    );
+  };
+
+     window.verBalanceHistorico = (
+  comunidadId,
+  balanceId
+) => {
+  const balance =
+    balancesGuardados.find(
+      registro =>
+        registro.id === balanceId
+    );
+
+  if (!balance) {
+    alert(
+      "No se encontró el balance guardado."
+    );
+
+    return;
+  }
+
+  const idComunidad =
+    comunidadId ||
+    balance.comunidadId ||
+    "";
+
+  const comunidad =
+    comunidadPorId(idComunidad) || {
+      id: idComunidad,
+      nombre:
+        balance.comunidadNombre ||
+        "Comunidad"
+    };
+
+  abrirBalance(
+    balance,
+    comunidad
+  );
+};
       /* RENDER GENERAL */
 
       document.getElementById("mesGlobal")
@@ -8415,34 +10516,63 @@
                         </div>
                       </div>
 
-                      <label>Dirección</label>
+<div class="fila-form">
+  <div>
+    <label>Calle y número</label>
 
-                      <input
-                        id="presDireccion_${comunidad.id}"
-                        type="text"
-                        value="${esc(
-                          presidente.direccion ||
-                          ""
-                        )}"
-                        placeholder="Dirección del presidente"
-                      >
+    <input
+      id="presDireccion_${comunidad.id}"
+      type="text"
+      value="${esc(
+        presidente.direccion || ""
+      )}"
+      placeholder="Ej.: Calle Mayor, 18"
+    >
+  </div>
 
-                      <label>IBAN</label>
+  <div>
+    <label>Piso / Puerta</label>
 
-                      <input
-                        id="presIban_${comunidad.id}"
-                        type="text"
-                        value="${esc(
-                          presidente.iban || ""
-                        )}"
-                        placeholder="IBAN del presidente"
-                      >
+    <input
+      id="presPiso_${comunidad.id}"
+      type="text"
+      value="${esc(
+        presidente.piso || ""
+      )}"
+      placeholder="Ej.: 2.º D"
+    >
+  </div>
+</div>
 
-                      <button
-                        type="button"
-                        class="btn-principal"
-                        onclick="guardarPresidente('${comunidad.id}')"
-                      >
+<div class="fila-form">
+  <div>
+    <label>IBAN</label>
+
+    <input
+      id="presIban_${comunidad.id}"
+      type="text"
+      value="${esc(
+        presidente.iban || ""
+      )}"
+      placeholder="IBAN del presidente"
+    >
+  </div>
+
+  <div>
+    <label>Cuota mensual (€)</label>
+
+    <input
+      id="presCuotaMensual_${comunidad.id}"
+      type="number"
+      min="0"
+      step="0.01"
+      value="${Number(
+        presidente.cuotaMensual || 0
+      ) || ""}"
+      placeholder="0,00"
+    >
+  </div>
+</div>
                         Guardar presidente
                       </button>
                     </div>
@@ -8586,15 +10716,51 @@
                       <label>Dirección</label>
 
                       <input
-                        id="vecDireccion_${comunidad.id}"
-                        type="text"
-                        placeholder="Dirección del vecino / propietario"
-                      >
+<div class="fila-form">
+  <div>
+    <label>Calle y número</label>
 
-                      <label>IBAN</label>
+    <input
+      id="vecDireccion_${comunidad.id}"
+      type="text"
+      placeholder="Ej.: Calle Mayor, 18"
+    >
+  </div>
 
-                      <input
-                        id="vecIban_${comunidad.id}"
+  <div>
+    <label>Piso / Puerta</label>
+
+    <input
+      id="vecPiso_${comunidad.id}"
+      type="text"
+      placeholder="Ej.: 1.º A, 2.º D, 4.º C"
+    >
+  </div>
+</div>
+
+<div class="fila-form">
+  <div>
+    <label>IBAN</label>
+
+    <input
+      id="vecIban_${comunidad.id}"
+      type="text"
+      placeholder="IBAN del vecino / propietario"
+    >
+  </div>
+
+  <div>
+    <label>Cuota mensual (€)</label>
+
+    <input
+      id="vecCuotaMensual_${comunidad.id}"
+      type="number"
+      min="0"
+      step="0.01"
+      placeholder="0,00"
+    >
+  </div>
+</div>
                         type="text"
                         placeholder="IBAN del vecino / propietario"
                       >
